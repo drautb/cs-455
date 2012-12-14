@@ -2,6 +2,8 @@
 
 #include <GL/glfw.h>
 
+#include "Matrix4.h"
+
 using namespace std;
 
 // Constants
@@ -44,8 +46,6 @@ int main(int argc, char *argv[])
 	glfwSetKeyCallback(keyboardCallback);
 
 	init();
-	
-	cout << "Entering main loop..." << endl;
 
 	// Main loop
 	while(running)
