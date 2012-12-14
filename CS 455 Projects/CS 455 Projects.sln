@@ -1,7 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Project 1", "Project 1\Project 1.vcxproj", "{5FA68DEC-DC09-4FCB-9B97-5321490276BF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Project 1 - GLUT", "Project 1 - GLUT\Project 1 - GLUT.vcxproj", "{5FA68DEC-DC09-4FCB-9B97-5321490276BF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Project 1 - Windows", "Project 1 - Windows\Project 1 - Windows.vcxproj", "{0CFC2AC3-7325-4A13-9103-32F3BCF01D3F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Project 1 - GLFW", "Project 1 - GLFW\Project 1 - GLFW.vcxproj", "{B2E7825D-384B-4378-B728-C620D1ED6EAF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,6 +17,14 @@ Global
 		{5FA68DEC-DC09-4FCB-9B97-5321490276BF}.Debug|Win32.Build.0 = Debug|Win32
 		{5FA68DEC-DC09-4FCB-9B97-5321490276BF}.Release|Win32.ActiveCfg = Release|Win32
 		{5FA68DEC-DC09-4FCB-9B97-5321490276BF}.Release|Win32.Build.0 = Release|Win32
+		{0CFC2AC3-7325-4A13-9103-32F3BCF01D3F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0CFC2AC3-7325-4A13-9103-32F3BCF01D3F}.Debug|Win32.Build.0 = Debug|Win32
+		{0CFC2AC3-7325-4A13-9103-32F3BCF01D3F}.Release|Win32.ActiveCfg = Release|Win32
+		{0CFC2AC3-7325-4A13-9103-32F3BCF01D3F}.Release|Win32.Build.0 = Release|Win32
+		{B2E7825D-384B-4378-B728-C620D1ED6EAF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B2E7825D-384B-4378-B728-C620D1ED6EAF}.Debug|Win32.Build.0 = Debug|Win32
+		{B2E7825D-384B-4378-B728-C620D1ED6EAF}.Release|Win32.ActiveCfg = Release|Win32
+		{B2E7825D-384B-4378-B728-C620D1ED6EAF}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
