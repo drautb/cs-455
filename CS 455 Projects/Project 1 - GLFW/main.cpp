@@ -47,6 +47,9 @@ int main(int argc, char *argv[])
 
 	init();
 
+	Matrix4<float>::Test();
+	Vector4<float>::Test();
+
 	// Main loop
 	while(running)
 	{
