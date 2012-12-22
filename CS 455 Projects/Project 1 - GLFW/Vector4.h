@@ -92,27 +92,27 @@ public:
 		return values[i];
 	}
 
-	Vector4 &Vector4::operator*=(const Vector4 &rhs)
-	{
-		*this = *this * rhs;
-		return *this;
-	}
+	//Vector4 &Vector4::operator*=(int rhs)
+	//{
+	//	for (int i=0; i<VECTOR_SIZE; i++)
+	//		values[i] *= rhs;
 
-	Vector4 &Vector4::operator*=(const int &rhs)
-	{
-		*this = *this * rhs;
-		return *this;
-	}
+	//	return *this;
+	//}
 
-	Vector4 &Vector4::operator*=(const float &rhs)
-	{
-		*this = *this * rhs;
-		return *this;
-	}
+	//Vector4 &Vector4::operator*=(float rhs)
+	//{
+	//	for (int i=0; i<VECTOR_SIZE; i++)
+	//		values[i] *= rhs;
 
-	Vector4 &Vector4::operator*=(const double &rhs)
+	//	return *this;
+	//}
+
+	Vector4 &Vector4::operator*=(double rhs)
 	{
-		*this = *this * rhs;
+		for (int i=0; i<VECTOR_SIZE; i++)
+			values[i] *= rhs;
+
 		return *this;
 	}
 
@@ -174,59 +174,43 @@ public:
 	static void Test()
 	{
 		cout << endl << "TESTING VECTOR4...." << endl;
+
+		Vector4<float> vec(0);
+		cout << "Vector: " << vec << endl;
+		float vals[VECTOR_SIZE] = { 2.0f, 4.0f, 8.0f, 16.0f };
+		vec.SetValues(vals);
+		cout << vec << endl;
+		
+		return;
 	}
 };
 
 /********************************************************************
  * Other Operator Overloads
  */
-template <typename T>
-Vector4<T> operator*(const Vector4<T> &lhs, const Vector4<T> &rhs)
-{
-	Vector4<T> result;
 
-	return result;
+//template <typename T>
+//Vector4<T> operator*(Matrix4<T> lhs, Vector4<T> rhs)
+//{
+//	return lhs *= rhs;
+//}
+
+template <typename T>
+Vector4<T> operator*(Vector4<T> lhs, int scalar)
+{
+	return lhs *= scalar;
 }
 
 template <typename T>
-Vector4<T> operator*(const Matrix4<T> &lhs, const Vector4<T> &rhs)
+Vector4<T> operator*(Vector4<T> lhs, float scalar)
 {
-	Vector4<T> result;
-
-	return result;
+	return lhs *= scalar;
 }
 
 template <typename T>
-Vector4<T> operator*(const Vector4<T> &lhs, const int &scalar)
+Vector4<T> operator*(Vector4<T> lhs, double scalar)
 {
-	Vector4<T> result = lhs;
-
-	for (int i=0; i<VECTOR_SIZE; i++)
-		result(i) *= scalar;
-
-	return result;
-}
-
-template <typename T>
-Vector4<T> operator*(const Vector4<T> &lhs, const float &scalar)
-{
-	Vector4<T> result = lhs;
-
-	for (int i=0; i<VECTOR_SIZE; i++)
-		result(i) *= scalar;
-
-	return result;
-}
-
-template <typename T>
-Vector4<T> operator*(const Vector4<T> &lhs, const double &scalar)
-{
-	Vector4<T> result = lhs;
-
-	for (int i=0; i<VECTOR_SIZE; i++)
-		result(i) *= scalar;
-
-	return result;
+	return lhs *= scalar;
 }
 
 template <typename T>
@@ -235,7 +219,7 @@ ostream &operator<<(ostream &out, Vector4<T> &rhs)
 	out << endl;
 	
 	for (int i=0; i<VECTOR_SIZE; i++)
-		out << "[ " << values[i] << "\t]" << endl;
+		out << "[ " << rhs.Get(i) << "\t]" << endl;
 
 	return out;
 }
