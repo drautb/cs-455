@@ -4,6 +4,9 @@
 
 #include <Eigen\Core>
 
+#include "Matrix455.h"
+#include "Vector455.h"
+
 using namespace std;
 using namespace Eigen;
 
@@ -129,8 +132,8 @@ void testProject1()
 {
 	cout << "TESTING PROJECT 1 MATH COMPONENTS" << endl;
 
-	Matrix4f mat1;
-	mat1 = Matrix4f::Zero();
+	Matrix455 mat1;
+	mat1 = Matrix455::Zero();
 	mat1(0, 0) = 1.0f;
 	mat1(0, 1) = 2.0f;
 	mat1(0, 2) = 3.0f;
@@ -142,15 +145,28 @@ void testProject1()
 	mat1(2, 3) = 9.0f;
 	cout << endl << "Mat1: " << endl << mat1 << endl;
 
-	Matrix4f mat2;
-	mat2 = Matrix4f::Zero();
-	mat2(0, 0) = 1.0f;
-	mat2(0, 2) = 1.0f;
-	mat2(1, 1) = 2.0f;
-	mat2(1, 3) = 2.0f;
-	mat2(2, 2) = 3.0f;
-	mat2(3, 3) = 4.0f;
+	Matrix455 mat2;
+	mat2 = Matrix455::Zero();
+	float vals[16] = { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 2.0f, 0.0f, 0.0f, 1.0f, 0.0f, 3.0f, 0.0f, 0.0f, 2.0f, 0.0f, 4.0f };
+	mat2 = vals;
 	cout << endl << "Mat2: " << endl << mat2 << endl;
 
 	cout << endl << "Mat1 * Mat2: " << endl << mat1*mat2 << endl;
+
+	cout << endl << "Accessing the array of data for mat2... " << endl;
+	const float *data = mat2.toArray();
+	for (int i=0; i<16; i++)
+		cout << "\t[" << i << "]: " << data[i];
+
+	cout << endl << endl << "Creating vector..." << endl;
+
+	Vector455 vec1;
+	vec1 = Vector455::Zero();
+	float vecVals[4] = { 2.0f, 3.0f, 5.0f, 7.0f };
+	vec1 = vecVals;
+	cout << endl << "Vector1: " << endl << vec1 << endl;
+
+	cout << endl << "Multiplying mat1 * vec1 = " << endl << mat1 * vec1 << endl;
+
+	cout << endl << "Done." << endl;
 }
