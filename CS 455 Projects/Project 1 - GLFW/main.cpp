@@ -2,9 +2,10 @@
 
 #include <GL/glfw.h>
 
-#include "Matrix4.h"
+#include <Eigen\Core>
 
 using namespace std;
+using namespace Eigen;
 
 // Constants
 const int WINDOW_WIDTH = 640;
@@ -25,6 +26,7 @@ int main(int argc, char *argv[]);
 void init(void);
 void redraw(void);
 void keyboardCallback(int key, int keyState);
+void testProject1(void);
 
 // Main loop
 int main(int argc, char *argv[])
@@ -47,8 +49,7 @@ int main(int argc, char *argv[])
 
 	init();
 
-	Matrix4<float>::Test();
-	Vector4<float>::Test();
+	testProject1();
 
 	// Main loop
 	while(running)
@@ -122,4 +123,34 @@ void redraw(void)
 void keyboardCallback(int key, int keyState)
 {
 	keys[key] = keyState;
+}
+
+void testProject1()
+{
+	cout << "TESTING PROJECT 1 MATH COMPONENTS" << endl;
+
+	Matrix4f mat1;
+	mat1 = Matrix4f::Zero();
+	mat1(0, 0) = 1.0f;
+	mat1(0, 1) = 2.0f;
+	mat1(0, 2) = 3.0f;
+	mat1(0, 3) = 4.0f;
+	mat1(1, 1) = 5.0f;
+	mat1(1, 2) = 6.0f;
+	mat1(1, 3) = 7.0f;
+	mat1(2, 2) = 8.0f;
+	mat1(2, 3) = 9.0f;
+	cout << endl << "Mat1: " << endl << mat1 << endl;
+
+	Matrix4f mat2;
+	mat2 = Matrix4f::Zero();
+	mat2(0, 0) = 1.0f;
+	mat2(0, 2) = 1.0f;
+	mat2(1, 1) = 2.0f;
+	mat2(1, 3) = 2.0f;
+	mat2(2, 2) = 3.0f;
+	mat2(3, 3) = 4.0f;
+	cout << endl << "Mat2: " << endl << mat2 << endl;
+
+	cout << endl << "Mat1 * Mat2: " << endl << mat1*mat2 << endl;
 }
