@@ -5,7 +5,7 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-#include "Matrix455.h"
+#include "cs455Utils.h"
 
 using namespace std;
 using namespace Eigen;
@@ -55,6 +55,26 @@ public:
 	const float *toArray()const
 	{
 		return this->data();
+	}
+
+	float &r()
+	{
+		return this->row(0)(0);
+	}
+
+	float &g()
+	{
+		return this->row(1)(0);
+	}
+
+	float &b()
+	{
+		return this->row(2)(0);
+	}
+
+	float &a()
+	{
+		return this->row(3)(0);
 	}
 
 	/**

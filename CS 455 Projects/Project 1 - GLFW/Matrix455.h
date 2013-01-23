@@ -6,7 +6,6 @@
 #include <Eigen\LU>
 
 #include "cs455Utils.h"
-#include "Vector455.h"
 
 using namespace std;
 using namespace Eigen;

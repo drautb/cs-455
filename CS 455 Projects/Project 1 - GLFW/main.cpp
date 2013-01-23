@@ -6,7 +6,7 @@
 
 int main(int argc, char *argv[])
 {
-	TestSuite::RunAll(std::cout);
+	//TestSuite::RunAll(std::cout);
 
 	Window *window = new Window();
 	

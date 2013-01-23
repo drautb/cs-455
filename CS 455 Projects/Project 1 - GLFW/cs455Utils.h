@@ -7,6 +7,7 @@
 #include <Eigen/Core>
 
 #include "Matrix455.h"
+#include "Vector455.h"
 
 #define SAFE_DELETE(o)			if (o != NULL) { delete o; o = NULL; }
 #define KEY_DOWN(k)				Keyboard::GetInstance().KeyIsDown(k)
