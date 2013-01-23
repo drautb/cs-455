@@ -43,6 +43,7 @@ private:
 	Vector455						clearColor;			// Color to put in when the screen is cleared.
 	Vector455						currentColor;		// The current color, changed by calling glColor3f
 	GLenum							renderMode;			// The rendering mode used when glBegin was called
+	GLfloat							lineWidth;			// The line width used when rending lines
 
 public:
 	/**
@@ -79,6 +80,7 @@ private:
 	void cs455_glEnd(void);
 	void cs455_glVertex2i(GLint x, GLint y);
 	void cs455_glColor3f(float r, float g, float b);
+	void cs455_glLineWidth(float width);
 
 	/**
 	 * Project Rendering Methods
@@ -92,5 +94,6 @@ private:
 	void p2_renderTriangleFan(void);
 	void p2_renderQuads(void);
 	void p2_renderQuadStrip(void);
+	void p2_renderFatLines(void);
 };
 
