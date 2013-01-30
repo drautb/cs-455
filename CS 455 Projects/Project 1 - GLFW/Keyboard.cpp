@@ -32,3 +32,10 @@ bool Keyboard::KeyIsDown(int key)
 {
 	return keys[key] == GLFW_PRESS;
 }
+
+
+
+
+
+
+

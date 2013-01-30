@@ -30,12 +30,16 @@ private:
 	
 	const static int CS455_GL_NONE	= -1;
 
+	const static int LAST_SCENE		= 7;
+
 	/**
 	 * Other Members
 	 */
 	int drawMode;					// The current drawing mode, opengl, or CS_455
 
 	float raster[RASTER_SIZE];		// Our personal raster buffer, 3 values per pixel.
+
+	int sceneToRender;				// The current scene to render
 
 	/**
 	 * My OpenGL values
@@ -44,6 +48,10 @@ private:
 	Vector455						currentColor;		// The current color, changed by calling glColor3f
 	GLenum							renderMode;			// The rendering mode used when glBegin was called
 	GLfloat							lineWidth;			// The line width used when rending lines
+
+	bool							prevPtSet;			// Tells us if a previous point has been set
+	int								prevPtX, prevPtY;	// The previous point in the rendering chain.
+	Vector455						prevColor;			// The color associated with the previous point
 
 public:
 	/**
@@ -66,10 +74,9 @@ public:
 private:
 	void redraw(void);
 	void waterMarkMine(void);
-	
 	void checkRenderingMode(void);
-
 	void setPixel(int x, int y, double r, double g, double b);
+	void plotLine(int x0, int y0, int x1, int y1);
 
 	/**
 	 * My OpenGL wrappers

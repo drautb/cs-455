@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <GL/glfw.h>
 
 #include "Window.h"
@@ -34,6 +36,8 @@ Window::Window(void)
 	currentColor.b() = 1.0f;
 
 	lineWidth = 1.0f;			// Default line width = 1 px
+
+	prevPtSet = false;
 }
 
 Window::~Window(void)
@@ -77,25 +81,25 @@ void Window::redraw(void)
 	cs455_glClearColor(0, 0, 0, 1);
 	cs455_glClear(GL_COLOR_BUFFER_BIT);
 	
-	if (KEY_DOWN('Q'))
+	if (sceneToRender == 0)
 	{
 		p2_renderPoints();
 		p2_renderLines();
 		p2_renderPolygons();
 	}
-	else if (KEY_DOWN('W'))
+	else if (sceneToRender == 1)
 		p2_renderLineStrip();
-	else if (KEY_DOWN('E'))
+	else if (sceneToRender == 2)
 		p2_renderLineLoop();
-	else if (KEY_DOWN('R'))
+	else if (sceneToRender == 3)
 		p2_renderTriangleStrip();
-	else if (KEY_DOWN('T'))
+	else if (sceneToRender == 4)
 		p2_renderTriangleFan();
-	else if (KEY_DOWN('Y'))
+	else if (sceneToRender == 5)
 		p2_renderQuads();
-	else if (KEY_DOWN('U'))
+	else if (sceneToRender == 6)
 		p2_renderQuadStrip();
-	else if (KEY_DOWN('I'))
+	else if (sceneToRender == 7)
 		p2_renderFatLines();
 
 	if (drawMode == MODE_CS_455)
@@ -122,14 +126,123 @@ void Window::checkRenderingMode(void)
 	else if (KEY_DOWN('2'))
 		drawMode = MODE_CS_455;
 
+	if (KEY_DOWN(GLFW_KEY_LEFT))
+		sceneToRender--;
+	else if (KEY_DOWN(GLFW_KEY_RIGHT))
+		sceneToRender++;
+
+	if (sceneToRender < 0)
+		sceneToRender = LAST_SCENE;
+	else if (sceneToRender > LAST_SCENE)
+		sceneToRender = 0;
+
 	return;
 }
 
 void Window::setPixel(int x, int y, double r, double g, double b)
 {
-	raster[((y*640) + x)*3 + 0] = (float)r;
-	raster[((y*640) + x)*3 + 1] = (float)g;
-	raster[((y*640) + x)*3 + 2] = (float)b;
+	raster[((y*WINDOW_WIDTH) + x)*3 + 0] = (float)r;
+	raster[((y*WINDOW_WIDTH) + x)*3 + 1] = (float)g;
+	raster[((y*WINDOW_WIDTH) + x)*3 + 2] = (float)b;
+
+	return;
+}
+
+void Window::plotLine(int x0, int y0, int x1, int y1)
+{
+	if (x1 - x0 == 0) // Vertical Lines
+	{
+		if (y0 > y1)
+		{
+			while (y0 >= y1)
+				setPixel(x0, y0--, currentColor.r(), currentColor.g(), currentColor.b());
+		}
+		else
+		{
+			while (y0 < y1)
+				setPixel(x0, y0++, currentColor.r(), currentColor.g(), currentColor.b());
+		}
+
+		return;
+	}
+	else if (y1 - y0 == 0) // Horizontal lines
+	{
+		if (x0 > x1)
+		{
+			while (x0 >= x1)
+				setPixel(x0--, y0, currentColor.r(), currentColor.g(), currentColor.b());
+		}
+		else
+		{
+			while (x0 < x1)
+				setPixel(x0++, y0, currentColor.r(), currentColor.g(), currentColor.b());
+		}
+
+		return;
+	}
+
+	// Other Lines, we always draw them left to right
+	int startX, startY, endX, endY;
+	int stepX = 1, stepY = 0;
+
+	if (x0 < x1)
+	{
+		startX = x0;
+		startY = y0;
+		endX = x1;
+		endY = y1;
+	}
+	else
+	{
+		startX = x1;
+		startY = y1;
+		endX = x0;
+		endY = y0;
+	}
+	
+	if (startY > endY) // Going downhill on screen
+		stepY = -1;
+	else
+		stepY = 1;
+
+	int dx = abs(endX - startX);
+	int dy = abs(endY - startY);
+	int d2y = 2 * dy;
+	int d2x = 2 * dx;
+
+	int d2xy = 2 * (dy - dx);
+	int d2 = d2y;
+	if (dy > dx)
+	{
+		d2xy = 2 * (dx - dy);
+		d2 = d2x;
+	}
+
+	int p0 = d2 - dx;
+	int deltaStep = dx > dy ? abs(endX - startX) : abs(endY - startY);
+
+	setPixel(startX, startY, currentColor.r(), currentColor.g(), currentColor.b());
+	for (int step=1; step<deltaStep; step++)
+	{
+		if (p0 < 0)
+		{
+			if (dx > dy)
+				startX += stepX;
+			else
+				startY += stepY;
+
+			p0 += d2;
+		}
+		else
+		{
+			startX += stepX;
+			startY += stepY;
+
+			p0 += d2xy;
+		}
+
+		setPixel(startX, startY, currentColor.r(), currentColor.g(), currentColor.b());
+	}
 
 	return;
 }
@@ -151,12 +264,18 @@ void Window::cs455_glClear(GLbitfield mask)
 {
 	glClear(mask);
 
+	// Eigen is SUPER slow if you do thousands of lookups like this each frame,
+	// so I'm caching them here to speed things up. A lot.
+	double clearR = clearColor(0);
+	double clearG = clearColor(1);
+	double clearB = clearColor(2);
+
 	if ((mask & GL_COLOR_BUFFER_BIT) != 0)
 	{
 		for (int x=0; x<WINDOW_WIDTH; x++)
 		{
 			for (int y=0; y<WINDOW_HEIGHT; y++)
-				setPixel(x, y, clearColor(0), clearColor(1), clearColor(2));
+				setPixel(x, y, clearR, clearG, clearB);
 		}
 	}
 
@@ -187,8 +306,21 @@ void Window::cs455_glVertex2i(GLint x, GLint y)
 	{
 		case GL_POINTS:
 			setPixel(x, y, currentColor.r(), currentColor.g(), currentColor.b());
+			break;
 
-		case GL_LINE:
+		case GL_LINES:
+			if (prevPtSet)
+			{
+				plotLine(prevPtX, prevPtY, x, y);
+				prevPtSet = false;
+			}
+			else
+			{
+				prevPtSet = true;
+				prevPtX = x;
+				prevPtY = y;
+			}
+			break;
 
 		case GL_LINE_STRIP:
 
@@ -217,6 +349,9 @@ void Window::cs455_glColor3f(float r, float g, float b)
 	currentColor.r() = r;
 	currentColor.g() = g;
 	currentColor.b() = b;
+
+	if (!prevPtSet)
+		prevColor = currentColor;
 
 	return;
 }
@@ -250,6 +385,10 @@ void Window::p2_renderLines(void)
 {
 	cs455_glBegin(GL_LINES);
 
+	cs455_glColor3f(1,1,1);
+	cs455_glVertex2i(0,0);
+	cs455_glVertex2i(100, 50);
+
 	for(int i=0; i<=8; i++)
 	{
 		cs455_glColor3f(1,0,0);
@@ -260,9 +399,23 @@ void Window::p2_renderLines(void)
 		cs455_glColor3f(0,1,1);
 		cs455_glVertex2i(100 - 10*i, 330);
 		cs455_glVertex2i(100,250);
+		cs455_glColor3f(0,0,1);
 		cs455_glVertex2i(180, 250 + 10*i);
 		cs455_glVertex2i(100,250);
+		cs455_glColor3f(1,0,1);
 		cs455_glVertex2i(180, 250 - 10*i);
+		cs455_glVertex2i(100,250);
+		cs455_glColor3f(1,1,1);
+		cs455_glVertex2i(20, 250 + 10 * i);
+		cs455_glVertex2i(100,250);
+		cs455_glColor3f(1,1,0);
+		cs455_glVertex2i(20, 250 - 10 * i);
+		cs455_glVertex2i(100,250);
+		cs455_glColor3f(0,1,0);
+		cs455_glVertex2i(100 + 10 * i, 170);
+		cs455_glVertex2i(100,250);
+		cs455_glColor3f(1,0,0);
+		cs455_glVertex2i(100 - 10 * i, 170);
 	}
 
 	cs455_glEnd();
@@ -292,11 +445,11 @@ void Window::p2_renderLineStrip(void)
 {
 	cs455_glBegin(GL_LINE_STRIP);
 
-	cs455_glColor3f(0.42,0.27,0.11);
+	cs455_glColor3f(0.42f,0.27f,0.11f);
 	cs455_glVertex2i(250,30);
 	cs455_glVertex2i(270,60);
 	cs455_glVertex2i(270,210);
-	cs455_glColor3f(0.04,0.70,0.02);
+	cs455_glColor3f(0.04f,0.70f,0.02f);
 	cs455_glVertex2i(230,230);
 	cs455_glVertex2i(220,270);
 	cs455_glVertex2i(220,310);
@@ -307,7 +460,7 @@ void Window::p2_renderLineStrip(void)
 	cs455_glVertex2i(380,310);
 	cs455_glVertex2i(380,270);
 	cs455_glVertex2i(370,230);
-	cs455_glColor3f(0.42,0.27,0.11);
+	cs455_glColor3f(0.42f,0.27f,0.11f);
 	cs455_glVertex2i(330,210);
 	cs455_glVertex2i(330,60);
 	cs455_glVertex2i(350,30);
@@ -319,11 +472,11 @@ void Window::p2_renderLineLoop(void)
 {
 	cs455_glBegin(GL_LINE_LOOP);
 
-	cs455_glColor3f(0.42,0.27,0.11);
+	cs455_glColor3f(0.42f,0.27f,0.11f);
 	cs455_glVertex2i(250,30);
 	cs455_glVertex2i(270,60);
 	cs455_glVertex2i(270,210);
-	cs455_glColor3f(0.04,0.70,0.02);
+	cs455_glColor3f(0.04f,0.70f,0.02f);
 	cs455_glVertex2i(230,230);
 	cs455_glVertex2i(220,270);
 	cs455_glVertex2i(220,310);
@@ -334,7 +487,7 @@ void Window::p2_renderLineLoop(void)
 	cs455_glVertex2i(380,310);
 	cs455_glVertex2i(380,270);
 	cs455_glVertex2i(370,230);
-	cs455_glColor3f(0.42,0.27,0.11);
+	cs455_glColor3f(0.42f,0.27f,0.11f);
 	cs455_glVertex2i(330,210);
 	cs455_glVertex2i(330,60);
 	cs455_glVertex2i(350,30);
