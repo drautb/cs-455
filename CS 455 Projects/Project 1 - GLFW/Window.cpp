@@ -34,6 +34,7 @@ Window::Window(void)
 	currentColor.r() = 1.0f;	// Default render color = white
 	currentColor.g() = 1.0f;	
 	currentColor.b() = 1.0f;
+	currentColor.a() = 1.0f;
 
 	lineWidth = 1.0f;			// Default line width = 1 px
 
@@ -148,19 +149,43 @@ void Window::setPixel(int x, int y, double r, double g, double b)
 	return;
 }
 
-void Window::plotLine(int x0, int y0, int x1, int y1)
+void Window::plotLine(int x0, int y0, int x1, int y1, double r0, double g0, double b0, double r1, double g1, double b1)
 {
+	// Color calculations
+	double red = r0, green = g0, blue = b0;
+	double dRed, dGreen, dBlue;
+
+	int dPixels;
+	if (abs(x1 - x0) > abs(y1 - y0))
+		dPixels = abs(x1 - x0);
+	else
+		dPixels = abs(y1 - y0);
+
+	dRed = (r1 - r0) / dPixels;
+	dGreen = (g1 - g0) / dPixels;
+	dBlue = (b1 - b0) / dPixels;
+
 	if (x1 - x0 == 0) // Vertical Lines
 	{
 		if (y0 > y1)
 		{
 			while (y0 >= y1)
-				setPixel(x0, y0--, currentColor.r(), currentColor.g(), currentColor.b());
+			{
+				setPixel(x0, y0--, red, green, blue);
+				red += dRed;
+				green += dGreen;
+				blue += dBlue;
+			}
 		}
 		else
 		{
 			while (y0 < y1)
-				setPixel(x0, y0++, currentColor.r(), currentColor.g(), currentColor.b());
+			{
+				setPixel(x0, y0++, red, green, blue);
+				red += dRed;
+				green += dGreen;
+				blue += dBlue;
+			}
 		}
 
 		return;
@@ -170,12 +195,22 @@ void Window::plotLine(int x0, int y0, int x1, int y1)
 		if (x0 > x1)
 		{
 			while (x0 >= x1)
-				setPixel(x0--, y0, currentColor.r(), currentColor.g(), currentColor.b());
+			{
+				setPixel(x0--, y0, red, green, blue);
+				red += dRed;
+				green += dGreen;
+				blue += dBlue;
+			}
 		}
 		else
 		{
 			while (x0 < x1)
-				setPixel(x0++, y0, currentColor.r(), currentColor.g(), currentColor.b());
+			{
+				setPixel(x0++, y0, red, green, blue);
+				red += dRed;
+				green += dGreen;
+				blue += dBlue;
+			}
 		}
 
 		return;
@@ -198,6 +233,13 @@ void Window::plotLine(int x0, int y0, int x1, int y1)
 		startY = y1;
 		endX = x0;
 		endY = y0;
+
+		red = r1;
+		green = g1;
+		blue = b1;
+		dRed = (r0 - r1) / dPixels;
+		dGreen = (g0 - g1) / dPixels;
+		dBlue = (b0 - b1) / dPixels;
 	}
 	
 	if (startY > endY) // Going downhill on screen
@@ -221,7 +263,7 @@ void Window::plotLine(int x0, int y0, int x1, int y1)
 	int p0 = d2 - dx;
 	int deltaStep = dx > dy ? abs(endX - startX) : abs(endY - startY);
 
-	setPixel(startX, startY, currentColor.r(), currentColor.g(), currentColor.b());
+	setPixel(startX, startY, red, green, blue);
 	for (int step=1; step<deltaStep; step++)
 	{
 		if (p0 < 0)
@@ -241,10 +283,23 @@ void Window::plotLine(int x0, int y0, int x1, int y1)
 			p0 += d2xy;
 		}
 
-		setPixel(startX, startY, currentColor.r(), currentColor.g(), currentColor.b());
+		setPixel(startX, startY, red, green, blue);
+		red += dRed;
+		green += dGreen;
+		blue += dBlue;
 	}
 
 	return;
+}
+
+void Window::plotLine(int x0, int y0, int x1, int y1, Vector455 *startColor, Vector455 *endColor)
+{
+	plotLine(x0, y0, x1, y1, startColor->r(), startColor->g(), startColor->b(), endColor->r(), endColor->g(), endColor->b());
+}
+
+void Window::plotLine(int x0, int y0, int x1, int y1)
+{
+	plotLine(x0, y0, x1, y1, &currentColor, &currentColor);
 }
 
 /**
@@ -289,6 +344,33 @@ void Window::cs455_glBegin(GLenum mode)
 	glBegin(mode);
 
 	renderMode = mode;
+
+	switch (renderMode)
+	{
+		case GL_POINTS:
+			pointQ.setCap(1);
+			break;
+
+		case GL_LINES:
+			pointQ.setCap(2);
+			break;
+
+		case GL_LINE_STRIP:
+
+		case GL_LINE_LOOP:
+
+		case GL_TRIANGLE_STRIP:
+
+		case GL_TRIANGLE_FAN:
+		case GL_POLYGON:
+
+		case GL_QUADS:
+
+		case GL_QUAD_STRIP:
+
+		case CS455_GL_NONE:
+		default: break;
+	}
 }
 
 void Window::cs455_glEnd()
@@ -302,16 +384,19 @@ void Window::cs455_glVertex2i(GLint x, GLint y)
 {
 	glVertex2i(x, y);
 
+	PointColor newPc(x, y, currentColor);
+	pointQ.push(newPc);
+	
 	switch (renderMode)
 	{
-		case GL_POINTS:
-			setPixel(x, y, currentColor.r(), currentColor.g(), currentColor.b());
+		case GL_POINTS:	
+			setPixel(newPc.x, newPc.y, newPc.color.r(), newPc.color.g(), newPc.color.b());
 			break;
 
 		case GL_LINES:
 			if (prevPtSet)
 			{
-				plotLine(prevPtX, prevPtY, x, y);
+				plotLine(prevPtX, prevPtY, x, y, &prevColor, &currentColor);
 				prevPtSet = false;
 			}
 			else
@@ -319,6 +404,7 @@ void Window::cs455_glVertex2i(GLint x, GLint y)
 				prevPtSet = true;
 				prevPtX = x;
 				prevPtY = y;
+				prevColor = currentColor;
 			}
 			break;
 

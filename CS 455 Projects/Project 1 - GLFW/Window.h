@@ -3,6 +3,8 @@
 #include <GL/glfw.h>
 
 #include "Keyboard.h"
+#include "PointColor.h"
+#include "CappedQueue.h"
 #include "cs455Utils.h"
 
 void GLFWCALL ResizeCallback(int width, int height);
@@ -24,7 +26,8 @@ private:
 
 	const static int DIMENSIONS		= 3;
 	const static int RASTER_SIZE	= WINDOW_WIDTH * WINDOW_HEIGHT * DIMENSIONS;
-	
+	const static int OUTLINE_WIDTH	= 2;
+
 	const static int MODE_OPENGL	= 1;
 	const static int MODE_CS_455	= 2;
 	
@@ -35,11 +38,15 @@ private:
 	/**
 	 * Other Members
 	 */
-	int drawMode;					// The current drawing mode, opengl, or CS_455
+	int drawMode;											// The current drawing mode, opengl, or CS_455
 
-	float raster[RASTER_SIZE];		// Our personal raster buffer, 3 values per pixel.
+	float raster[RASTER_SIZE];								// Our personal raster buffer, 3 values per pixel.
 
-	int sceneToRender;				// The current scene to render
+	PointColor outline[WINDOW_HEIGHT][OUTLINE_WIDTH];		// Used to store data to fill triangles
+
+	CappedQueue<PointColor>	pointQ;							// Stores the most recent points established with glVertex3i
+		
+	int sceneToRender;										// The current scene to render
 
 	/**
 	 * My OpenGL values
@@ -76,6 +83,9 @@ private:
 	void waterMarkMine(void);
 	void checkRenderingMode(void);
 	void setPixel(int x, int y, double r, double g, double b);
+
+	void plotLine(int x0, int y0, int x1, int y1, double r0, double g0, double b0, double r1, double g1, double b1);
+	void plotLine(int x0, int y0, int x1, int y1, Vector455 *startColor, Vector455 *endColor);
 	void plotLine(int x0, int y0, int x1, int y1);
 
 	/**

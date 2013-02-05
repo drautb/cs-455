@@ -73,7 +73,9 @@
   <ItemGroup>
     <ClInclude Include="cs455Utils.h" />
     <ClInclude Include="Keyboard.h" />
+    <ClInclude Include="CappedQueue.h" />
     <ClInclude Include="Matrix455.h" />
+    <ClInclude Include="PointColor.h" />
     <ClInclude Include="TestSuite.h" />
     <ClInclude Include="Vector455.h" />
     <ClInclude Include="Window.h" />

@@ -44,5 +44,11 @@
     <ClInclude Include="cs455Utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PointColor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CappedQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
