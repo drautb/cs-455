@@ -26,9 +26,7 @@ public:
 		color->Zero();
 		*/
 
-		x = -1;
-		y = -1;
-		color.Zero();
+		Reset();
 	}
 
 	PointColor(int x, int y, Vector455& color)
@@ -47,5 +45,11 @@ public:
 		*/
 	}
 
+	void Reset()
+	{
+		x = -1;
+		y = -1;
+		color.Zero();
+	}
 };
 

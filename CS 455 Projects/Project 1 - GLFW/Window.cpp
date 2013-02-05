@@ -28,6 +28,7 @@ Window::Window(void)
 	 * Set Defaults
 	 */
 	renderMode = CS455_GL_NONE;
+	nIsOdd = true;
 
 	clearColor.Zero();			// Default clear color = black
 
@@ -38,7 +39,7 @@ Window::Window(void)
 
 	lineWidth = 1.0f;			// Default line width = 1 px
 
-	prevPtSet = false;
+	sceneToRender = 0;
 }
 
 Window::~Window(void)
@@ -122,14 +123,14 @@ void Window::waterMarkMine(void)
 
 void Window::checkRenderingMode(void)
 {
-	if (KEY_DOWN('1'))
+	if (KEY_HIT('1'))
 		drawMode = MODE_OPENGL;
-	else if (KEY_DOWN('2'))
+	else if (KEY_HIT('2'))
 		drawMode = MODE_CS_455;
 
-	if (KEY_DOWN(GLFW_KEY_LEFT))
+	if (KEY_HIT(GLFW_KEY_LEFT))
 		sceneToRender--;
-	else if (KEY_DOWN(GLFW_KEY_RIGHT))
+	else if (KEY_HIT(GLFW_KEY_RIGHT))
 		sceneToRender++;
 
 	if (sceneToRender < 0)
@@ -171,6 +172,7 @@ void Window::plotLine(int x0, int y0, int x1, int y1, double r0, double g0, doub
 		{
 			while (y0 >= y1)
 			{
+				saveToOutline(x0, y0, red, green, blue);
 				setPixel(x0, y0--, red, green, blue);
 				red += dRed;
 				green += dGreen;
@@ -181,6 +183,7 @@ void Window::plotLine(int x0, int y0, int x1, int y1, double r0, double g0, doub
 		{
 			while (y0 < y1)
 			{
+				saveToOutline(x0, y0, red, green, blue);
 				setPixel(x0, y0++, red, green, blue);
 				red += dRed;
 				green += dGreen;
@@ -263,6 +266,7 @@ void Window::plotLine(int x0, int y0, int x1, int y1, double r0, double g0, doub
 	int p0 = d2 - dx;
 	int deltaStep = dx > dy ? abs(endX - startX) : abs(endY - startY);
 
+	saveToOutline(startX, startY, red, green, blue);
 	setPixel(startX, startY, red, green, blue);
 	for (int step=1; step<deltaStep; step++)
 	{
@@ -283,6 +287,7 @@ void Window::plotLine(int x0, int y0, int x1, int y1, double r0, double g0, doub
 			p0 += d2xy;
 		}
 
+		saveToOutline(startX, startY, red, green, blue);
 		setPixel(startX, startY, red, green, blue);
 		red += dRed;
 		green += dGreen;
@@ -292,14 +297,79 @@ void Window::plotLine(int x0, int y0, int x1, int y1, double r0, double g0, doub
 	return;
 }
 
-void Window::plotLine(int x0, int y0, int x1, int y1, Vector455 *startColor, Vector455 *endColor)
+void Window::plotLine(int x0, int y0, int x1, int y1, Vector455& startColor, Vector455& endColor)
 {
-	plotLine(x0, y0, x1, y1, startColor->r(), startColor->g(), startColor->b(), endColor->r(), endColor->g(), endColor->b());
+	plotLine(x0, y0, x1, y1, startColor.r(), startColor.g(), startColor.b(), endColor.r(), endColor.g(), endColor.b());
+}
+
+void Window::plotLine(PointColor& pc0, PointColor& pc1)
+{
+	plotLine(pc0.x, pc0.y, pc1.x, pc1.y, pc0.color, pc1.color);
 }
 
 void Window::plotLine(int x0, int y0, int x1, int y1)
 {
-	plotLine(x0, y0, x1, y1, &currentColor, &currentColor);
+	plotLine(x0, y0, x1, y1, currentColor, currentColor);
+}
+
+void Window::clearOutline()
+{
+	for (int y=0; y<WINDOW_HEIGHT; y++)
+	{
+		outline[y][0].Reset();
+		outline[y][1].Reset();
+	}
+}
+
+void Window::saveToOutline(PointColor& pc)
+{
+	if (!fillableRenderingMode())
+		return;
+
+	if (outline[pc.y][0].x == -1)
+		outline[pc.y][0] = pc;
+	else
+		outline[pc.y][1] = pc;
+}
+
+void Window::saveToOutline(int x, int y, double r, double g, double b)
+{
+	if (!fillableRenderingMode())
+		return;
+
+	Vector455 color;
+	color.r() = (float)r;
+	color.g() = (float)g;
+	color.b() = (float)b;
+
+	PointColor pc(x, y, color);
+
+	saveToOutline(pc);
+}
+
+void Window::fillOutline()
+{
+	if (!fillableRenderingMode())
+		return;
+
+	for (int y=0; y<WINDOW_HEIGHT; y++)
+	{
+		if (outline[y][0].x != -1 && outline[y][1].x != -1)
+			plotLine(outline[y][0], outline[y][1]);
+
+		outline[y][0].Reset();
+		outline[y][1].Reset();
+	}
+}
+
+bool Window::fillableRenderingMode()
+{
+	return renderMode == GL_TRIANGLES ||
+		   renderMode == GL_TRIANGLE_STRIP ||
+		   renderMode == GL_TRIANGLE_FAN ||
+		   renderMode == GL_POLYGON ||
+		   renderMode == GL_QUADS ||
+		   renderMode == GL_QUAD_STRIP;
 }
 
 /**
@@ -348,16 +418,61 @@ void Window::cs455_glBegin(GLenum mode)
 	switch (renderMode)
 	{
 		case GL_POINTS:
-			pointQ.setCap(1);
+			pointQ.SetCap(1);
 			break;
 
 		case GL_LINES:
-			pointQ.setCap(2);
+			pointQ.SetCap(2);
 			break;
 
 		case GL_LINE_STRIP:
+			pointQ.SetCap(2);
+			break;
 
 		case GL_LINE_LOOP:
+		case GL_TRIANGLES:
+		case GL_TRIANGLE_STRIP:
+			nIsOdd = true;
+
+		case GL_TRIANGLE_FAN:
+		case GL_POLYGON:
+			pointQ.SetCap(3);
+			break;
+
+		case GL_QUADS:
+		case GL_QUAD_STRIP:
+			pointQ.SetCap(4);
+			break;
+
+		case CS455_GL_NONE:
+		default: 
+			pointQ.SetCap(0);
+			break;
+	}
+}
+
+void Window::cs455_glEnd()
+{
+	glEnd();
+
+	switch (renderMode)
+	{
+		case GL_POINTS:	
+			break;
+
+		case GL_LINES:
+			break;
+
+		case GL_LINE_STRIP:
+			break;
+
+		case GL_LINE_LOOP:
+			plotLine(pointQ.PopFront(), pointQ.PopFront());
+			break;
+		
+		case GL_TRIANGLES:
+
+			break;
 
 		case GL_TRIANGLE_STRIP:
 
@@ -365,17 +480,11 @@ void Window::cs455_glBegin(GLenum mode)
 		case GL_POLYGON:
 
 		case GL_QUADS:
-
 		case GL_QUAD_STRIP:
 
 		case CS455_GL_NONE:
 		default: break;
 	}
-}
-
-void Window::cs455_glEnd()
-{
-	glEnd();
 
 	renderMode = CS455_GL_NONE;
 }
@@ -385,7 +494,7 @@ void Window::cs455_glVertex2i(GLint x, GLint y)
 	glVertex2i(x, y);
 
 	PointColor newPc(x, y, currentColor);
-	pointQ.push(newPc);
+	pointQ.Push(newPc);
 	
 	switch (renderMode)
 	{
@@ -394,32 +503,130 @@ void Window::cs455_glVertex2i(GLint x, GLint y)
 			break;
 
 		case GL_LINES:
-			if (prevPtSet)
+			if (pointQ.Size() == 2)
 			{
-				plotLine(prevPtX, prevPtY, x, y, &prevColor, &currentColor);
-				prevPtSet = false;
-			}
-			else
-			{
-				prevPtSet = true;
-				prevPtX = x;
-				prevPtY = y;
-				prevColor = currentColor;
+				PointColor pc = pointQ.PopFront();
+				PointColor pc2 = pointQ.PopFront();
+				plotLine(pc, pc2);	
 			}
 			break;
 
 		case GL_LINE_STRIP:
+			if (pointQ.Size() == 2)
+			{
+				plotLine(pointQ.PopBack(), pointQ.Front());
+			}
+			break;
 
 		case GL_LINE_LOOP:
+			if (pointQ.Size() == 2)
+			{
+				plotLine(pointQ.Back(), pointQ.Front());
+			}
+			else if (pointQ.Size() == 3)
+			{
+				PointColor pc0 = pointQ.PopFront();
+				PointColor pc1 = pointQ.PopFront();
+				plotLine(pc1, pc0);
+				pointQ.Push(pc0);
+			}
+			break;
+
+		case GL_TRIANGLES:
+			if (pointQ.Size() == 3)
+			{
+				PointColor pc0, pc1, pc2;
+				pc0 = pointQ.PopFront();
+				pc1 = pointQ.PopFront();
+				pc2 = pointQ.PopFront();
+
+				plotLine(pc0, pc1);
+				plotLine(pc1, pc2);
+				plotLine(pc2, pc0);
+
+				// fill outline
+				fillOutline();
+			}
+			break;
 
 		case GL_TRIANGLE_STRIP:
+			if (pointQ.Size() == 3)
+			{
+				PointColor pc0 = pointQ.PopBack();
+				if (nIsOdd)
+				{
+					plotLine(pc0, pointQ.Back());
+					plotLine(pointQ.Back(), pointQ.Front());
+					plotLine(pointQ.Front(), pc0);
+					nIsOdd = false;
+				}
+				else
+				{
+					plotLine(pointQ.Back(), pc0);
+					plotLine(pc0, pointQ.Front());
+					plotLine(pointQ.Front(), pointQ.Back());
+					nIsOdd = true;
+				}
+				fillOutline();
+			}
+			break;
 
 		case GL_TRIANGLE_FAN:
 		case GL_POLYGON:
+			if (pointQ.Size() == 3)
+			{
+				PointColor pc1, pc2;
+				pc1 = pointQ.PopFront();
+				pc2 = pointQ.PopFront();
+
+				plotLine(pointQ.Back(), pc1);
+				plotLine(pc1, pc2);
+				plotLine(pc2, pointQ.Back());
+				fillOutline();
+
+				pointQ.Push(pc1);
+			}
+			break;
 
 		case GL_QUADS:
+			if (pointQ.Size() == 4)
+			{
+				PointColor pc0, pc1, pc2, pc3;
+				pc0 = pointQ.PopFront();
+				pc1 = pointQ.PopFront();
+				pc2 = pointQ.PopFront();
+				pc3 = pointQ.PopFront();
+
+				plotLine(pc0, pc1);
+				plotLine(pc1, pc2);
+				plotLine(pc2, pc0);
+				fillOutline();
+
+				plotLine(pc0, pc2);
+				plotLine(pc2, pc3);
+				plotLine(pc3, pc0);
+				fillOutline();
+			}
+			break;
 
 		case GL_QUAD_STRIP:
+			if (pointQ.Size() == 4)
+			{
+				PointColor pc0, pc1;
+				pc0 = pointQ.PopBack();
+				pc1 = pointQ.PopBack();
+
+				plotLine(pc0, pc1);
+				plotLine(pc1, pointQ.Back());
+				plotLine(pointQ.Back(), pc0);
+				fillOutline();
+
+				plotLine(pc1, pointQ.Back());
+				plotLine(pointQ.Back(), pointQ.Front());
+				plotLine(pointQ.Front(), pc1);
+				fillOutline();
+			}
+			break;
 
 		case CS455_GL_NONE:
 		default: break;
@@ -435,9 +642,6 @@ void Window::cs455_glColor3f(float r, float g, float b)
 	currentColor.r() = r;
 	currentColor.g() = g;
 	currentColor.b() = b;
-
-	if (!prevPtSet)
-		prevColor = currentColor;
 
 	return;
 }

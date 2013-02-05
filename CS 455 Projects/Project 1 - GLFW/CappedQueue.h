@@ -23,12 +23,12 @@ public:
 
 	CappedQueue(void)
 	{
-		setCap(DEFAULT_CAP);
+		SetCap(DEFAULT_CAP);
 	}
 
 	CappedQueue(int startingCap)
 	{
-		setCap(startingCap);
+		SetCap(startingCap);
 	}
 
 	~CappedQueue(void)
@@ -36,7 +36,7 @@ public:
 		
 	}
 
-	void push(const T& item)
+	void Push(const T& item)
 	{
 		currentIdx = nextIndex();
 		q[currentIdx] = item;
@@ -45,7 +45,7 @@ public:
 		cap();
 	}
 
-	T pop()
+	T PopFront()
 	{
 		currentIdx = prevIndex();
 		size--;
@@ -53,22 +53,46 @@ public:
 		return q[nextIndex()];
 	}
 
-	int setCap(int cap)
+	T PopBack()
+	{
+		int backIdx = backIndex();
+
+		size--;
+
+		return q[backIdx];
+	}
+
+	T Front()
+	{
+		return q[currentIdx];
+	}
+
+	T Back()
+	{
+		return q[backIndex()];
+	}
+
+	int SetCap(int cap)
 	{
 		if (cap > 0 && cap < MAX_SIZE)
 			sizeCap = cap;
 		else
 			sizeCap = DEFAULT_CAP;
 
-		clear();
+		Clear();
 
 		return sizeCap;
 	}
 
-	void clear()
+	void Clear()
 	{
 		size = 0;
 		currentIdx = 0;
+	}
+
+	int Size()
+	{
+		return size;
 	}
 
 private:
@@ -76,7 +100,7 @@ private:
 	void cap()
 	{
 		while (size > sizeCap)
-			pop();
+			PopFront();
 	}
 
 	int nextIndex()
@@ -93,6 +117,19 @@ private:
 			return sizeCap - 1;
 
 		return currentIdx - 1;
+	}
+
+	int backIndex()
+	{
+		int backIdx = currentIdx;
+		for (int i=size-1; i>0; i--)
+		{
+			backIdx--;
+			if (backIdx < 0)
+				backIdx = sizeCap - 1;
+		}
+
+		return backIdx;
 	}
 };
 

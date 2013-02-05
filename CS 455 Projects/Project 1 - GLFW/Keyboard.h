@@ -17,6 +17,8 @@ public:
 	 */
 	int keys[KEY_COUNT];
 
+	bool keyLocks[KEY_COUNT];
+
 private:
 	/**
 	 * Constructor
@@ -49,6 +51,10 @@ public:
 	bool KeyIsDown(char key);
 
 	bool KeyIsDown(int key);
+
+	bool KeyIsHit(char key);
+
+	bool KeyIsHit(int key);
 };
 
 

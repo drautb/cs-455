@@ -11,6 +11,7 @@
 
 #define SAFE_DELETE(o)			if (o != NULL) { delete o; o = NULL; }
 #define KEY_DOWN(k)				Keyboard::GetInstance().KeyIsDown(k)
+#define KEY_HIT(k)				Keyboard::GetInstance().KeyIsHit(k)
 #define MAT_STACK_455			std::stack<Matrix455, std::deque<Matrix455, Eigen::aligned_allocator<Matrix455> > >
 	
 /**

@@ -45,6 +45,7 @@ private:
 	PointColor outline[WINDOW_HEIGHT][OUTLINE_WIDTH];		// Used to store data to fill triangles
 
 	CappedQueue<PointColor>	pointQ;							// Stores the most recent points established with glVertex3i
+	bool nIsOdd;											// Flag for drawing triangle strips.
 		
 	int sceneToRender;										// The current scene to render
 
@@ -55,10 +56,6 @@ private:
 	Vector455						currentColor;		// The current color, changed by calling glColor3f
 	GLenum							renderMode;			// The rendering mode used when glBegin was called
 	GLfloat							lineWidth;			// The line width used when rending lines
-
-	bool							prevPtSet;			// Tells us if a previous point has been set
-	int								prevPtX, prevPtY;	// The previous point in the rendering chain.
-	Vector455						prevColor;			// The color associated with the previous point
 
 public:
 	/**
@@ -85,8 +82,15 @@ private:
 	void setPixel(int x, int y, double r, double g, double b);
 
 	void plotLine(int x0, int y0, int x1, int y1, double r0, double g0, double b0, double r1, double g1, double b1);
-	void plotLine(int x0, int y0, int x1, int y1, Vector455 *startColor, Vector455 *endColor);
+	void plotLine(int x0, int y0, int x1, int y1, Vector455& startColor, Vector455& endColor);
+	void plotLine(PointColor& pc0, PointColor& pc1);
 	void plotLine(int x0, int y0, int x1, int y1);
+
+	void clearOutline();
+	void saveToOutline(PointColor& pc);
+	void saveToOutline(int x, int y, double r, double g, double b);
+	void fillOutline();
+	bool fillableRenderingMode();
 
 	/**
 	 * My OpenGL wrappers
