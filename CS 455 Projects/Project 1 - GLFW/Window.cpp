@@ -376,6 +376,14 @@ void Window::saveToOutline(PointColor& pc)
 		outline[pc.y][0] = pc;
 	else if (outline[pc.y][1].x == -1)
 		outline[pc.y][1] = pc;
+	else
+	{
+		// There's a contest, both buffer slots are full at this y position, so we 
+		// need to determine which one should be discarded. We'll keep the two that
+		// have the greatest dx
+		if (abs(pc.x - outline[pc.y][0].x) > abs(outline[pc.y][1].x - outline[pc.y][0].x))
+			outline[pc.y][1] = pc;
+	}
 }
 
 void Window::saveToOutline(int x, int y, double r, double g, double b)
