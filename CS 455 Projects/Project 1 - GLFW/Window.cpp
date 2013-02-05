@@ -29,6 +29,7 @@ Window::Window(void)
 	 */
 	renderMode = CS455_GL_NONE;
 	nIsOdd = true;
+	filling = false;
 
 	clearColor.Zero();			// Default clear color = black
 
@@ -173,7 +174,14 @@ void Window::plotLine(int x0, int y0, int x1, int y1, double r0, double g0, doub
 			while (y0 >= y1)
 			{
 				saveToOutline(x0, y0, red, green, blue);
-				setPixel(x0, y0--, red, green, blue);
+				if (lineWidth > 1.0f)
+				{
+					for (int x=x0-(int)(lineWidth/2.0f); x<x0+(int)(lineWidth/2); x++)
+						setPixel(x, y0, red, green, blue);
+					y0--;
+				}
+				else
+					setPixel(x0, y0--, red, green, blue);
 				red += dRed;
 				green += dGreen;
 				blue += dBlue;
@@ -184,7 +192,14 @@ void Window::plotLine(int x0, int y0, int x1, int y1, double r0, double g0, doub
 			while (y0 < y1)
 			{
 				saveToOutline(x0, y0, red, green, blue);
-				setPixel(x0, y0++, red, green, blue);
+				if (lineWidth > 1.0f)
+				{
+					for (int x=x0-(int)(lineWidth/2.0f); x<x0+(int)(lineWidth/2); x++)
+						setPixel(x, y0, red, green, blue);
+					y0++;
+				}
+				else
+					setPixel(x0, y0++, red, green, blue);
 				red += dRed;
 				green += dGreen;
 				blue += dBlue;
@@ -199,7 +214,14 @@ void Window::plotLine(int x0, int y0, int x1, int y1, double r0, double g0, doub
 		{
 			while (x0 >= x1)
 			{
-				setPixel(x0--, y0, red, green, blue);
+				if (lineWidth > 1.0f)
+				{
+					for (int y=y0-(int)(lineWidth/2.0f); y<y0+(int)(lineWidth/2); y++)
+						setPixel(x0, y, red, green, blue);
+					x0--;
+				}
+				else
+					setPixel(x0--, y0, red, green, blue);
 				red += dRed;
 				green += dGreen;
 				blue += dBlue;
@@ -209,7 +231,14 @@ void Window::plotLine(int x0, int y0, int x1, int y1, double r0, double g0, doub
 		{
 			while (x0 < x1)
 			{
-				setPixel(x0++, y0, red, green, blue);
+				if (lineWidth > 1.0f)
+				{
+					for (int y=y0-(int)(lineWidth/2.0f); y<y0+(int)(lineWidth/2); y++)
+						setPixel(x0, y, red, green, blue);
+					x0++;
+				}
+				else
+					setPixel(x0++, y0, red, green, blue);
 				red += dRed;
 				green += dGreen;
 				blue += dBlue;
@@ -275,7 +304,10 @@ void Window::plotLine(int x0, int y0, int x1, int y1, double r0, double g0, doub
 			if (dx > dy)
 				startX += stepX;
 			else
+			{
 				startY += stepY;
+				saveToOutline(startX, startY, red, green, blue);
+			}
 
 			p0 += d2;
 		}
@@ -283,12 +315,26 @@ void Window::plotLine(int x0, int y0, int x1, int y1, double r0, double g0, doub
 		{
 			startX += stepX;
 			startY += stepY;
+			saveToOutline(startX, startY, red, green, blue);
 
 			p0 += d2xy;
 		}
 
-		saveToOutline(startX, startY, red, green, blue);
-		setPixel(startX, startY, red, green, blue);
+		if (lineWidth > 1.0f)
+		{
+			if (dx > dy) // change in x is greater, so the line should be thicker in the y
+			{
+				for (int y=startY-(int)(lineWidth/2.0f); y<startY+(int)(lineWidth/2); y++)
+					setPixel(startX, y, red, green, blue);
+			} 
+			else // change in y is greater, so the line should be thicker in the x
+			{
+				for (int x=startX-(int)(lineWidth/2.0f); x<startX+(int)(lineWidth/2); x++)
+					setPixel(x, startY, red, green, blue);
+			}
+		}
+		else
+			setPixel(startX, startY, red, green, blue);
 		red += dRed;
 		green += dGreen;
 		blue += dBlue;
@@ -328,7 +374,7 @@ void Window::saveToOutline(PointColor& pc)
 
 	if (outline[pc.y][0].x == -1)
 		outline[pc.y][0] = pc;
-	else
+	else if (outline[pc.y][1].x == -1)
 		outline[pc.y][1] = pc;
 }
 
@@ -352,6 +398,8 @@ void Window::fillOutline()
 	if (!fillableRenderingMode())
 		return;
 
+	filling = true;
+
 	for (int y=0; y<WINDOW_HEIGHT; y++)
 	{
 		if (outline[y][0].x != -1 && outline[y][1].x != -1)
@@ -360,10 +408,15 @@ void Window::fillOutline()
 		outline[y][0].Reset();
 		outline[y][1].Reset();
 	}
+
+	filling = false;
 }
 
 bool Window::fillableRenderingMode()
 {
+	if (filling)
+		return false;
+
 	return renderMode == GL_TRIANGLES ||
 		   renderMode == GL_TRIANGLE_STRIP ||
 		   renderMode == GL_TRIANGLE_FAN ||

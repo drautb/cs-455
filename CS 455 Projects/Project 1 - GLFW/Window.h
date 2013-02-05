@@ -46,6 +46,7 @@ private:
 
 	CappedQueue<PointColor>	pointQ;							// Stores the most recent points established with glVertex3i
 	bool nIsOdd;											// Flag for drawing triangle strips.
+	bool filling;											// Signifies that we are in the process of filling a polygon
 		
 	int sceneToRender;										// The current scene to render
 
