@@ -1,5 +1,7 @@
 #include <iostream>
 
+#include <cmath>
+
 #include <GL/glfw.h>
 
 #include "Window.h"
@@ -13,7 +15,7 @@ void GLFWCALL ResizeCallback(int width, int height)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	glOrtho(0, width, 0, height, -1, 1); // only for project 2; delete thereafter!
+	//glOrtho(0, width, 0, height, -1, 1); // only for project 2; delete thereafter!
 
 	return;
 }
@@ -51,7 +53,7 @@ Window::~Window(void)
 
 bool Window::Open(void)
 {
-	if (!glfwOpenWindow(WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0, 0, 0, 0, 0, GLFW_WINDOW ))
+	if (!glfwOpenWindow(WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0, 0, 0, 1, 0, GLFW_WINDOW ))
 		return false;
 
 	glfwSetWindowSizeCallback(ResizeCallback);
@@ -78,32 +80,13 @@ void Window::EnterMainLoop(void)
 /**********************************************
  * Private Methods
  */
-
 void Window::redraw(void)
 {
 	cs455_glClearColor(0, 0, 0, 1);
-	cs455_glClear(GL_COLOR_BUFFER_BIT);
+	cs455_glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	if (sceneToRender == 0)
-	{
-		p2_renderPoints();
-		p2_renderLines();
-		p2_renderPolygons();
-	}
-	else if (sceneToRender == 1)
-		p2_renderLineStrip();
-	else if (sceneToRender == 2)
-		p2_renderLineLoop();
-	else if (sceneToRender == 3)
-		p2_renderTriangleStrip();
-	else if (sceneToRender == 4)
-		p2_renderTriangleFan();
-	else if (sceneToRender == 5)
-		p2_renderQuads();
-	else if (sceneToRender == 6)
-		p2_renderQuadStrip();
-	else if (sceneToRender == 7)
-		p2_renderFatLines();
+	//p2_redraw();
+	p3_redraw();
 
 	if (drawMode == MODE_CS_455)
 		glDrawPixels(WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGB, GL_FLOAT, raster);
@@ -433,9 +416,20 @@ bool Window::fillableRenderingMode()
 		   renderMode == GL_QUAD_STRIP;
 }
 
+#pragma region OPENGL WRAPPERS
 /**
  * My OpenGL Wrappers
  */
+void Window::cs455_glEnable(GLenum cap)
+{
+	glEnable(cap);
+}
+
+void Window::cs455_glDisable(GLenum cap)
+{
+	glDisable(cap);
+}
+
 void Window::cs455_glClearColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
 {
 	glClearColor(r, g, b, a);
@@ -696,6 +690,21 @@ void Window::cs455_glVertex2i(GLint x, GLint y)
 	return;
 }
 
+void Window::cs455_glVertex2f(GLfloat x, GLfloat y)
+{
+	glVertex2f(x, y);
+}
+
+void Window::cs455_glVertex3f(GLfloat x, GLfloat y, GLfloat z)
+{
+	glVertex3f(x, y, z);
+}
+
+void Window::cs455_glVertex4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+{
+	glVertex4f(x, y, z, w);
+}
+
 void Window::cs455_glColor3f(float r, float g, float b)
 {
 	glColor3f(r, g, b);
@@ -716,9 +725,86 @@ void Window::cs455_glLineWidth(float width)
 	return;
 }
 
+void Window::cs455_glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
+{
+	glViewport(x, y, width, height);
+}
+
+void Window::cs455_glLoadIdentity(void)
+{
+	glLoadIdentity();
+}
+
+void Window::cs455_glPushMatrix(void)
+{
+	glPushMatrix();
+}
+
+void Window::cs455_glPopMatrix(void)
+{
+	glPopMatrix();
+}
+
+void Window::cs455_glLoadMatrixd(const GLdouble *m)
+{
+	glLoadMatrixd(m);
+}
+
+void Window::cs455_glMultMatrixd(const GLdouble *m)
+{
+	glMultMatrixd(m);
+}
+
+void Window::cs455_glRotatef(GLfloat theta, GLfloat x, GLfloat y, GLfloat z)
+{
+	glRotatef(theta, x, y, z);
+}
+
+void Window::cs455_glTranslatef(GLfloat x, GLfloat y, GLfloat z)
+{
+	glTranslatef(x, y, z);
+}
+
+void Window::cs455_glScalef(GLfloat x, GLfloat y, GLfloat z)
+{
+	glScalef(x, y, z);
+}
+
+void Window::cs455_glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble near, GLdouble far)
+{
+	glOrtho(left, right, bottom, top, near, far);
+}
+
+#pragma endregion
+
+#pragma region PROJECT 2
 /**
  * Project rendering methods
  */
+void Window::p2_redraw(void)
+{
+	if (sceneToRender == 0)
+	{
+		p2_renderPoints();
+		p2_renderLines();
+		p2_renderPolygons();
+	}
+	else if (sceneToRender == 1)
+		p2_renderLineStrip();
+	else if (sceneToRender == 2)
+		p2_renderLineLoop();
+	else if (sceneToRender == 3)
+		p2_renderTriangleStrip();
+	else if (sceneToRender == 4)
+		p2_renderTriangleFan();
+	else if (sceneToRender == 5)
+		p2_renderQuads();
+	else if (sceneToRender == 6)
+		p2_renderQuadStrip();
+	else if (sceneToRender == 7)
+		p2_renderFatLines();
+}
+
 void Window::p2_renderPoints(void)
 {	
 	cs455_glBegin(GL_POINTS);
@@ -975,3 +1061,286 @@ void Window::p2_renderFatLines(void)
 
 	cs455_glLineWidth(1);
 }
+
+#pragma endregion
+
+#pragma region PROJECT 3
+
+void Window::p3_redraw(void)
+{
+	if (sceneToRender == 0)
+		p3_renderViewport();
+	else if (sceneToRender == 1)
+		p3_render1OverW();
+	else if (sceneToRender == 2)
+		p3_renderDepthBuffer();
+	else if (sceneToRender == 3)
+		p3_renderEasyPointClipping();
+	else if (sceneToRender == 4)
+		p3_renderMatrixManips();
+	else if (sceneToRender == 5)
+		p3_renderMatrixStacks();
+	else if (sceneToRender == 6)
+		p3_renderRotate();
+	else if (sceneToRender == 7)
+		p3_renderTranslate();
+	else if (sceneToRender == 8)
+		p3_renderScale();
+	else if (sceneToRender == 9)
+		p3_renderOrtho();
+}
+
+void Window::p3_renderViewport(void)
+{
+	cs455_glViewport(0,0,320,240);
+	
+	cs455_glBegin(GL_TRIANGLES);
+		cs455_glColor3f(0.0f,1.0f,0.0f);
+		cs455_glVertex3f(-1.0f,0.0f,0.0f);
+		cs455_glVertex3f(0.0f,-0.8f,0.0f);
+		cs455_glVertex3f(0.5f,0.8f,0.0f);
+	cs455_glEnd();
+	
+	cs455_glViewport(320,240,320,240);
+	
+	cs455_glBegin(GL_TRIANGLES);
+		cs455_glColor3f(0.0f,0.0f,1.0f);
+		cs455_glVertex3f(-1.0f,0.8f,0.0f);
+		cs455_glVertex3f(0.1f,-0.8f,0.0f);
+		cs455_glVertex3f(0.5f,0.8f,0.0f);
+	cs455_glEnd();
+
+	//Restore your viewport to the whole screen
+	cs455_glViewport(0,0,640,480);
+}
+
+void Window::p3_render1OverW(void)
+{
+	cs455_glBegin(GL_TRIANGLES);
+		cs455_glColor3f(1.0f,0.0f,0.0f);
+		cs455_glVertex4f(-1.0f,0.2f,0.0f,1.0f);
+		cs455_glVertex4f(0.0f,0.8f,0,1.0f);
+		cs455_glVertex4f(1.0f,0.2f,0.0f,1.0f);
+		cs455_glColor3f(1.0f,0.0f,1.0f);
+		cs455_glVertex4f(-1.0f,-0.8f,0.0f,2.0f);
+		cs455_glVertex4f(0.0f,-0.2f,0,2.0f);
+		cs455_glVertex4f(1.0f,-0.8f,0.0f,2.0f);
+	cs455_glEnd();
+}
+
+void Window::p3_renderDepthBuffer(void)
+{
+	cs455_glEnable(GL_DEPTH_TEST);
+
+	cs455_glBegin(GL_TRIANGLES);
+		cs455_glColor3f(0.0f,1.0f,1.0f);
+		cs455_glVertex3f(-0.5f,0.2f,0.5f);
+		cs455_glVertex3f(0.0f,-0.5f,0.0f);
+		cs455_glVertex3f(0.5f,0.2f,-0.5f);
+		cs455_glColor3f(1.0f,1.0f,0.0f);
+		cs455_glVertex3f(-0.5f,-0.2f,-0.5f);
+		cs455_glVertex3f(0.0f,0.5f,0.0f);
+		cs455_glVertex3f(0.5f,-0.2f,0.5f);
+	cs455_glEnd();
+
+	cs455_glDisable(GL_DEPTH_TEST);
+}
+
+void Window::p3_renderEasyPointClipping(void)
+{
+	cs455_glEnable(GL_DEPTH_TEST);
+
+	cs455_glBegin(GL_TRIANGLES);
+		cs455_glColor3f(0.5f,1.0f,1.0f);
+		cs455_glVertex3f(0.5f,0.0f,0.0f);
+		cs455_glVertex3f(0.0f,0.5f,-2.0f);
+		cs455_glVertex3f(0.0f,-0.5f,2.0f);
+	cs455_glEnd();
+
+	cs455_glViewport(50,50,200,400);
+
+	cs455_glBegin(GL_TRIANGLES);
+		cs455_glColor3f(1.0f,1.0f,0.5f);
+		cs455_glVertex3f(-1.4f,-1.2f,-0.5f);
+		cs455_glVertex3f(0.0f,1.2f,0.0f);
+		cs455_glVertex3f(1.5f,-0.2f,0.5f);
+	cs455_glEnd();
+
+	//Restore your viewport to the whole screen
+	cs455_glViewport(0,0,640,480);
+
+	cs455_glDisable(GL_DEPTH_TEST);
+}
+
+void Window::p3_renderMatrixManips(void)
+{
+	double translate[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, -1.2,0.3,0,1};
+	double rotate[16] = {cos(M_PI/2),sin(M_PI/2),0,0, -sin(M_PI/2),cos(M_PI/2),0,0, 0,0,1,0, 0,0,0,1};
+
+	cs455_glLoadIdentity();
+
+	cs455_glBegin(GL_TRIANGLES);
+		cs455_glColor3f(0.5f,0.2f,1.0f);
+		cs455_glVertex3f(0.5f,0.1f,0.0f);
+		cs455_glVertex3f(0.8f,0.1f,0.0f);
+		cs455_glVertex3f(0.65f,0.4f,0.0f);
+	cs455_glEnd();
+
+	cs455_glLoadMatrixd(translate);
+
+	cs455_glBegin(GL_TRIANGLES);
+		cs455_glColor3f(0.5f,0.8f,0.2f);
+		cs455_glVertex3f(0.5f,0.1f,0.0f);
+		cs455_glVertex3f(0.8f,0.1f,0.0f);
+		cs455_glVertex3f(0.65f,0.4f,0.0f);
+	cs455_glEnd();
+
+	cs455_glLoadIdentity();
+
+	cs455_glBegin(GL_TRIANGLES);
+		cs455_glColor3f(0.2f,0.6f,1.0f);
+		cs455_glVertex3f(0.5f,-0.4f,0.0f);
+		cs455_glVertex3f(0.8f,-0.4f,0.0f);
+		cs455_glVertex3f(0.65f,-0.7f,0.0f);
+	cs455_glEnd();
+
+	cs455_glLoadMatrixd(rotate);
+
+	cs455_glMultMatrixd(translate);
+
+	cs455_glBegin(GL_TRIANGLES);
+		cs455_glColor3f(0.9f,0.2f,0.4f);
+		cs455_glVertex3f(0.5f,-0.4f,0.0f);
+		cs455_glVertex3f(0.8f,-0.4f,0.0f);
+		cs455_glVertex3f(0.65f,-0.7f,0.0f);
+	cs455_glEnd(); 
+
+	cs455_glLoadIdentity();
+}
+
+void Window::p3_renderMatrixStacks(void)
+{
+	p3_tree(8);
+}
+
+void Window::p3_renderRotate(void)
+{
+	cs455_glLoadIdentity();
+
+	cs455_glBegin(GL_TRIANGLES);
+		cs455_glColor3f(0.5f,0.2f,1.0f);
+		cs455_glVertex3f(0.5f,0.1f,0.0f);
+		cs455_glVertex3f(0.8f,0.1f,0.0f);
+		cs455_glVertex3f(0.65f,0.4f,0.0f);
+	cs455_glEnd();
+
+	cs455_glRotatef(90.0f,0.0f,0.0f,1.0f);
+
+	cs455_glBegin(GL_TRIANGLES);
+		cs455_glColor3f(0.1f,0.2f,1.0f);
+		cs455_glVertex3f(0.5f,0.1f,0.0f);
+		cs455_glVertex3f(0.8f,0.1f,0.0f);
+		cs455_glVertex3f(0.65f,0.4f,0.0f);
+	cs455_glEnd();
+
+	cs455_glLoadIdentity();
+}
+
+void Window::p3_renderTranslate(void)
+{
+	cs455_glLoadIdentity();
+
+	cs455_glBegin(GL_TRIANGLES);
+		cs455_glColor3f(0.33f,0.77f,0.0f);
+		cs455_glVertex3f(0.5f,0.1f,0.0f);
+		cs455_glVertex3f(0.8f,0.1f,0.0f);
+		cs455_glVertex3f(0.65f,0.4f,0.0f);
+	cs455_glEnd();
+
+	cs455_glTranslatef(-1.0f,-1.0f,0.0f);
+
+	cs455_glBegin(GL_TRIANGLES);
+		cs455_glColor3f(0.77f,0.2f,0.3f);
+		cs455_glVertex3f(0.5f,0.1f,0.0f);
+		cs455_glVertex3f(0.8f,0.1f,0.0f);
+		cs455_glVertex3f(0.65f,0.4f,0.0f);
+	cs455_glEnd();
+
+	cs455_glLoadIdentity();
+}
+
+void Window::p3_renderScale(void)
+{
+	cs455_glLoadIdentity();
+
+	cs455_glBegin(GL_TRIANGLES);
+		cs455_glColor3f(0.9f,0.5f,1.0f);
+		cs455_glVertex3f(0.5f,0.4f,0.0f);
+		cs455_glVertex3f(0.8f,0.4f,0.0f);
+		cs455_glVertex3f(0.65f,0.9f,0.0f);
+	cs455_glEnd();
+
+	cs455_glScalef(0.8f,0.7f,1.0f);
+
+	cs455_glBegin(GL_TRIANGLES);
+		cs455_glColor3f(0.8f,0.7f,0.0f);
+		cs455_glVertex3f(0.5f,0.1f,0.0f);
+		cs455_glVertex3f(0.8f,0.1f,0.0f);
+		cs455_glVertex3f(0.65f,0.4f,0.0f);
+	cs455_glEnd();	
+
+	cs455_glLoadIdentity();
+}
+
+void Window::p3_renderOrtho(void)
+{
+	cs455_glLoadIdentity();
+
+	cs455_glOrtho(0,640,0,480,-1,1);
+
+	cs455_glBegin(GL_TRIANGLES);
+		cs455_glColor3f(1.0f,0.0f,0.0f);
+		cs455_glVertex3f(300.0f,300.0f,0.0f);
+		cs455_glColor3f(0.0f,1.0f,0.0f);
+		cs455_glVertex3f(600.0f,300.0f,0.0f);
+		cs455_glColor3f(0.0f,0.0f,1.0f);
+		cs455_glVertex3f(450.0f,410.0f,0.0f);
+		cs455_glColor3f(1.0f,1.0f,0.0f);
+		cs455_glVertex3f(100.0f,400.0f,0.0f);
+		cs455_glColor3f(0.0f,1.0f,1.0f);
+		cs455_glVertex3f(70.0f,60.0f,0.0f);
+		cs455_glColor3f(1.0f,0.0f,1.0f);
+		cs455_glVertex3f(350.0f,100.0f,0.0f);
+	cs455_glEnd();
+
+	cs455_glLoadIdentity();
+}
+
+void Window::p3_tree(int depth)
+{
+	static const double r2 = 1/sqrt(2);
+	static const double mdown[16] = { 0,-r2,0,0, r2,0,0,0, 0,0,1,0, 0,-r2,0,1 };
+	static const double mup[16] = { 0,r2,0,0, -r2,0,0,0, 0,0,1,0, 0,r2,0,1 };
+
+	if (depth <= 0) return;
+
+	cs455_glBegin(GL_LINES);
+		cs455_glVertex2f(0.0f, (float)-r2);
+		cs455_glVertex2f(0.0f, (float)r2);
+	cs455_glEnd();
+	
+	cs455_glPushMatrix();
+	cs455_glMultMatrixd(mdown);
+	
+	p3_tree(depth-1);
+	
+	cs455_glPopMatrix();
+	cs455_glPushMatrix();
+	cs455_glMultMatrixd(mup);
+	
+	p3_tree(depth-1);
+	
+	cs455_glPopMatrix();
+}
+
+#pragma endregion

@@ -33,7 +33,8 @@ private:
 	
 	const static int CS455_GL_NONE	= -1;
 
-	const static int LAST_SCENE		= 7;
+	//const static int LAST_SCENE	= 7;
+	const static int LAST_SCENE		= 9;
 
 	/**
 	 * Other Members
@@ -96,17 +97,33 @@ private:
 	/**
 	 * My OpenGL wrappers
 	 */
+	void cs455_glEnable(GLenum cap);
+	void cs455_glDisable(GLenum cap);
 	void cs455_glClearColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
 	void cs455_glClear(GLbitfield mask);
 	void cs455_glBegin(GLenum mode);
 	void cs455_glEnd(void);
 	void cs455_glVertex2i(GLint x, GLint y);
+	void cs455_glVertex2f(GLfloat x, GLfloat y);
+	void cs455_glVertex3f(GLfloat x, GLfloat y, GLfloat z);
+	void cs455_glVertex4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w);
 	void cs455_glColor3f(float r, float g, float b);
 	void cs455_glLineWidth(float width);
+	void cs455_glViewport(GLint x, GLint y, GLsizei width, GLsizei height);
+	void cs455_glLoadIdentity(void);
+	void cs455_glPushMatrix(void);
+	void cs455_glPopMatrix(void);
+	void cs455_glLoadMatrixd(const GLdouble *m);
+	void cs455_glMultMatrixd(const GLdouble *m);
+	void cs455_glRotatef(GLfloat theta, GLfloat x, GLfloat y, GLfloat z);
+	void cs455_glTranslatef(GLfloat x, GLfloat y, GLfloat z);
+	void cs455_glScalef(GLfloat x, GLfloat y, GLfloat z);
+	void cs455_glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble near, GLdouble far);
 
 	/**
 	 * Project Rendering Methods
 	 */
+	void p2_redraw(void);
 	void p2_renderPoints(void);
 	void p2_renderLines(void);
 	void p2_renderPolygons(void);
@@ -117,5 +134,18 @@ private:
 	void p2_renderQuads(void);
 	void p2_renderQuadStrip(void);
 	void p2_renderFatLines(void);
+
+	void p3_redraw(void);
+	void p3_renderViewport(void);
+	void p3_render1OverW(void);
+	void p3_renderDepthBuffer(void);
+	void p3_renderEasyPointClipping(void);
+	void p3_renderMatrixManips(void);
+	void p3_renderMatrixStacks(void);
+	void p3_renderRotate(void);
+	void p3_renderTranslate(void);
+	void p3_renderScale(void);
+	void p3_renderOrtho(void);
+	void p3_tree(int depth);
 };
 
