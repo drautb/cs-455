@@ -21,20 +21,25 @@ private:
 	/**
 	 * Class constants
 	 */
-	const static int WINDOW_WIDTH	= 640;
-	const static int WINDOW_HEIGHT	= 480;
+	const static int WINDOW_WIDTH			= 640;
+	const static int WINDOW_HEIGHT			= 480;
 
-	const static int DIMENSIONS		= 3;
-	const static int RASTER_SIZE	= WINDOW_WIDTH * WINDOW_HEIGHT * DIMENSIONS;
-	const static int OUTLINE_WIDTH	= 2;
+	const static int DIMENSIONS				= 3;
+	const static int RASTER_SIZE			= WINDOW_WIDTH * WINDOW_HEIGHT * DIMENSIONS;
+	const static int OUTLINE_WIDTH			= 2;
 
-	const static int MODE_OPENGL	= 1;
-	const static int MODE_CS_455	= 2;
+	const static int MODE_OPENGL			= 1;
+	const static int MODE_CS_455			= 2;
 	
-	const static int CS455_GL_NONE	= -1;
+	const static int MATRIX_MODE_COUNT		= 2;
 
-	//const static int LAST_SCENE	= 7;
-	const static int LAST_SCENE		= 9;
+	/** 
+	 * My OpenGL Constants
+	 */
+	const static int CS455_GL_NONE			= -1;
+	
+	const static int CS455_GL_MODELVIEW		= 0;
+	const static int CS455_GL_PROJECTION	= 1;
 
 	/**
 	 * Other Members
@@ -59,6 +64,10 @@ private:
 	GLenum							renderMode;			// The rendering mode used when glBegin was called
 	GLfloat							lineWidth;			// The line width used when rending lines
 
+	MAT_STACK_455					matrixStack[MATRIX_MODE_COUNT];	// The OpenGL Matrix Stacks
+	Matrix455						activeMatrix[MATRIX_MODE_COUNT];	// The active matrix for each stack...
+	int								currentMatrix;						// The current matrix mode, indexes into matrixStacks and activeMatrix
+
 public:
 	/**
 	 * Constructor
@@ -77,6 +86,8 @@ public:
 
 	void EnterMainLoop(void);
 
+	int SceneToRender(void){return sceneToRender;}
+
 private:
 	void redraw(void);
 	void waterMarkMine(void);
@@ -94,6 +105,7 @@ private:
 	void fillOutline();
 	bool fillableRenderingMode();
 
+public:
 	/**
 	 * My OpenGL wrappers
 	 */
@@ -110,6 +122,7 @@ private:
 	void cs455_glColor3f(float r, float g, float b);
 	void cs455_glLineWidth(float width);
 	void cs455_glViewport(GLint x, GLint y, GLsizei width, GLsizei height);
+	void cs455_glMatrixMode(GLenum mode);
 	void cs455_glLoadIdentity(void);
 	void cs455_glPushMatrix(void);
 	void cs455_glPopMatrix(void);
@@ -119,33 +132,5 @@ private:
 	void cs455_glTranslatef(GLfloat x, GLfloat y, GLfloat z);
 	void cs455_glScalef(GLfloat x, GLfloat y, GLfloat z);
 	void cs455_glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble near, GLdouble far);
-
-	/**
-	 * Project Rendering Methods
-	 */
-	void p2_redraw(void);
-	void p2_renderPoints(void);
-	void p2_renderLines(void);
-	void p2_renderPolygons(void);
-	void p2_renderLineStrip(void);
-	void p2_renderLineLoop(void);
-	void p2_renderTriangleStrip(void);
-	void p2_renderTriangleFan(void);
-	void p2_renderQuads(void);
-	void p2_renderQuadStrip(void);
-	void p2_renderFatLines(void);
-
-	void p3_redraw(void);
-	void p3_renderViewport(void);
-	void p3_render1OverW(void);
-	void p3_renderDepthBuffer(void);
-	void p3_renderEasyPointClipping(void);
-	void p3_renderMatrixManips(void);
-	void p3_renderMatrixStacks(void);
-	void p3_renderRotate(void);
-	void p3_renderTranslate(void);
-	void p3_renderScale(void);
-	void p3_renderOrtho(void);
-	void p3_tree(int depth);
 };
 

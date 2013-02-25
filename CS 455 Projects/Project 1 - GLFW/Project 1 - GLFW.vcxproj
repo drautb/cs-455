@@ -68,6 +68,8 @@
   <ItemGroup>
     <ClCompile Include="Keyboard.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="P2.cpp" />
+    <ClCompile Include="P3.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -75,7 +77,9 @@
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="CappedQueue.h" />
     <ClInclude Include="Matrix455.h" />
+    <ClInclude Include="P3.h" />
     <ClInclude Include="PointColor.h" />
+    <ClInclude Include="P2.h" />
     <ClInclude Include="TestSuite.h" />
     <ClInclude Include="Vector455.h" />
     <ClInclude Include="Window.h" />
