@@ -88,6 +88,8 @@ private:
 	float							a, b, c, d;
 	Vector3f						p0, p1, p2;			// 3 Points to form current Plane.
 
+	Vector3f						f, up, s, u;		// Vectors used for gluLookAt
+
 	Matrix455						temp;
 
 public:
@@ -160,6 +162,9 @@ public:
 	void cs455_glRotatef(GLfloat theta, GLfloat x, GLfloat y, GLfloat z);
 	void cs455_glTranslatef(GLfloat x, GLfloat y, GLfloat z);
 	void cs455_glScalef(GLfloat x, GLfloat y, GLfloat z);
+	void cs455_glScaleFixed(GLdouble sx, GLdouble sy, GLdouble sz, GLdouble cx, GLdouble cy, GLdouble cz);
 	void cs455_glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble near, GLdouble far);
+	
+	void cs455_gluLookAt(GLdouble ex, GLdouble ey, GLdouble ez, GLdouble cx, GLdouble cy, GLdouble cz, GLdouble ux, GLdouble uy, GLdouble uz);
 };
 

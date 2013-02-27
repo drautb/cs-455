@@ -8,9 +8,7 @@ class Camera
 private:
 	Window					*w;
 
-	Vector455				position;
-	Vector455				lookAt;
-	Vector455				upVector;
+	Matrix455				transformation;
 
 public:
 	/**

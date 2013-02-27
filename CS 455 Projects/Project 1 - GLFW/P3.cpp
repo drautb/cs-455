@@ -27,6 +27,10 @@ void P3::redraw(Window *w)
 		renderScale(w);
 	else if (sceneToRender == 9)
 		renderOrtho(w);
+	else if (sceneToRender == 10)
+		renderLookAt(w);
+	else if (sceneToRender == 11)
+		renderScaleFix(w);
 }
 
 void P3::renderViewport(Window *w)
@@ -251,6 +255,52 @@ void P3::renderOrtho(Window *w)
 		w->cs455_glColor3f(1.0f,0.0f,1.0f);
 		w->cs455_glVertex3f(350.0f,100.0f,0.0f);
 	w->cs455_glEnd();
+
+	w->cs455_glLoadIdentity();
+}
+
+void P3::renderLookAt(Window *w)
+{
+	w->cs455_glLoadIdentity();
+	w->cs455_gluLookAt(-0.3, -0.3, -0.5, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+
+	w->cs455_glEnable(GL_DEPTH_TEST);
+
+	w->cs455_glBegin(GL_TRIANGLES);
+		w->cs455_glColor3f(0.0f,1.0f,1.0f);
+		w->cs455_glVertex3f(-0.5f,0.2f,0.5f);
+		w->cs455_glVertex3f(0.0f,-0.5f,0.0f);
+		w->cs455_glVertex3f(0.5f,0.2f,-0.5f);
+		w->cs455_glColor3f(1.0f,1.0f,0.0f);
+		w->cs455_glVertex3f(-0.5f,-0.2f,-0.5f);
+		w->cs455_glVertex3f(0.0f,0.5f,0.0f);
+		w->cs455_glVertex3f(0.5f,-0.2f,0.5f);
+	w->cs455_glEnd();
+
+	w->cs455_glDisable(GL_DEPTH_TEST);
+
+	w->cs455_glLoadIdentity();
+}
+
+void P3::renderScaleFix(Window *w)
+{
+	w->cs455_glLoadIdentity();
+
+	w->cs455_glBegin(GL_TRIANGLES);
+		w->cs455_glColor3f(1.0f,0.0f,0.0f);
+		w->cs455_glVertex3f(0.0f,0.0f,0.0f);
+		w->cs455_glVertex3f(1.0f,0.0f,0.0f);
+		w->cs455_glVertex3f(0.5f,1.0f,0.0f);
+	w->cs455_glEnd();
+
+	w->cs455_glScaleFixed(0.5f,0.5f,1.0f, 0.5f, 0.5f, 0.0f);
+
+	w->cs455_glBegin(GL_TRIANGLES);
+		w->cs455_glColor3f(0.0f,1.0f,0.0f);
+		w->cs455_glVertex3f(0.0f,0.0f,-0.5f);
+		w->cs455_glVertex3f(1.0f,0.0f,-0.5f);
+		w->cs455_glVertex3f(0.5f,1.0f,-0.5f);
+	w->cs455_glEnd();	
 
 	w->cs455_glLoadIdentity();
 }

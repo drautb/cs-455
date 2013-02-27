@@ -1041,6 +1041,28 @@ void Window::cs455_glScalef(GLfloat x, GLfloat y, GLfloat z)
 	activeMatrix[currentMatrix] *= temp;
 }
 
+void Window::cs455_glScaleFixed(GLdouble sx, GLdouble sy, GLdouble sz, GLdouble cx, GLdouble cy, GLdouble cz)
+{
+	GLdouble data[16] = { 1.0, 0.0, 0.0, 0.0, 
+						  0.0, 1.0, 0.0, 0.0,
+						  0.0, 0.0, 1.0, 0.0,
+						  0.0, 0.0, 0.0, 1.0 };
+
+	data[12] = cx;
+	data[13] = cy;
+	data[14] = cz;
+	cs455_glMultMatrixd(data);
+	
+	cs455_glScalef((float)sx, (float)sy, (float)sz);
+
+	data[12] = -cx;
+	data[13] = -cy;
+	data[14] = -cz;
+	cs455_glMultMatrixd(data);
+
+	return;
+}
+
 void Window::cs455_glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble near, GLdouble far)
 {
 	glOrtho(left, right, bottom, top, near, far);
@@ -1059,6 +1081,51 @@ void Window::cs455_glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdou
 	zNear = (float)near;
 	zFar = (float)far;
 
+	activeMatrix[currentMatrix] *= temp;
+}
+
+void Window::cs455_gluLookAt(GLdouble ex, GLdouble ey, GLdouble ez, GLdouble cx, GLdouble cy, GLdouble cz, GLdouble ux, GLdouble uy, GLdouble uz)
+{
+	gluLookAt(ex, ey, ez, cx, cy, cz, ux, uy, uz);
+	
+	f.x() = (float)(cx - ex);
+	f.y() = (float)(cy - ey);
+	f.z() = (float)(cz - ez);
+
+	up.x() = (float)(ux);
+	up.y() = (float)(uy);
+	up.z() = (float)(uz);
+
+	f.normalize();
+	up.normalize();
+
+	s = f.cross(up);
+	s.normalize();
+
+	u = s.cross(f);
+	u.normalize();
+
+	temp = Matrix455::Identity();
+
+	temp(0, 0) = s.x();
+	temp(0, 1) = s.y();
+	temp(0, 2) = s.z();
+
+	temp(1, 0) = u.x();
+	temp(1, 1) = u.y();
+	temp(1, 2) = u.z();
+
+	temp(2, 0) = -f.x();
+	temp(2, 1) = -f.y();
+	temp(2, 2) = -f.z();
+
+	activeMatrix[currentMatrix] *= temp;
+	
+	temp = Matrix455::Identity();
+	temp(0, 3) = -(float)(ex);
+	temp(1, 3) = -(float)(ey);
+	temp(2, 3) = -(float)(ez);
+	
 	activeMatrix[currentMatrix] *= temp;
 }
 

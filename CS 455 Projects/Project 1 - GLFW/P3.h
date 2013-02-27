@@ -8,7 +8,7 @@
 class P3
 {
 public:
-	static const int SCENE_COUNT = 10;
+	static const int SCENE_COUNT = 12;
 
 	static void redraw(Window *w);
 	static void renderViewport(Window *w);
@@ -21,6 +21,8 @@ public:
 	static void renderTranslate(Window *w);
 	static void renderScale(Window *w);
 	static void renderOrtho(Window *w);
+	static void renderLookAt(Window *w);
+	static void renderScaleFix(Window *w);
 	static void tree(Window *w, int depth);
 };
 
