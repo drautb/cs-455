@@ -159,7 +159,7 @@ void P3::renderMatrixManips(Window *w)
 
 void P3::renderMatrixStacks(Window *w)
 {
-	tree(w, 8);
+	tree(w, 9);
 }
 
 void P3::renderRotate(Window *w)

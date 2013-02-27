@@ -7,6 +7,8 @@
 #include "CappedQueue.h"
 #include "cs455Utils.h"
 
+using namespace Eigen;
+
 void GLFWCALL ResizeCallback(int width, int height);
 
 /**
@@ -33,6 +35,7 @@ private:
 	
 	const static int MATRIX_MODE_COUNT		= 2;
 
+public:
 	/** 
 	 * My OpenGL Constants
 	 */
@@ -41,12 +44,14 @@ private:
 	const static int CS455_GL_MODELVIEW		= 0;
 	const static int CS455_GL_PROJECTION	= 1;
 
+private:
 	/**
 	 * Other Members
 	 */
 	int drawMode;											// The current drawing mode, opengl, or CS_455
 
 	float raster[RASTER_SIZE];								// Our personal raster buffer, 3 values per pixel.
+	float zBuffer[WINDOW_WIDTH * WINDOW_HEIGHT];			// Our personal depth buffer.
 
 	PointColor outline[WINDOW_HEIGHT][OUTLINE_WIDTH];		// Used to store data to fill triangles
 
@@ -67,6 +72,23 @@ private:
 	MAT_STACK_455					matrixStack[MATRIX_MODE_COUNT];	// The OpenGL Matrix Stacks
 	Matrix455						activeMatrix[MATRIX_MODE_COUNT];	// The active matrix for each stack...
 	int								currentMatrix;						// The current matrix mode, indexes into matrixStacks and activeMatrix
+
+	Matrix455						composedMatrix;		// The current matrix composed of Projection*Modelview to be used in rendering.
+
+	double							vpXMin, vpYMin;	// Viewport edges
+	double							vpWidth, vpHeight;	
+	float							zNear, zFar;	// Z Depth
+		
+	Vector455						transformedPt;		// Temp variable that holds a transformed point
+
+	long							glCapEnabled;		// Variable that holds all the enabled/disabled cap. data.
+
+	Hyperplane<float, 3>			currentPlane;		// Plane used to calculate z values
+	Vector455						coeffs;
+	float							a, b, c, d;
+	Vector3f						p0, p1, p2;			// 3 Points to form current Plane.
+
+	Matrix455						temp;
 
 public:
 	/**
@@ -92,18 +114,24 @@ private:
 	void redraw(void);
 	void waterMarkMine(void);
 	void checkRenderingMode(void);
-	void setPixel(int x, int y, double r, double g, double b);
+	void renderPoint();
+	void setPixel(unsigned int x, unsigned int y, float z, double r, double g, double b);
+	void setZPlane(PointColor& pc0, PointColor& pc1, PointColor& pc2);
+	float getZValue(int x, int y);
 
-	void plotLine(int x0, int y0, int x1, int y1, double r0, double g0, double b0, double r1, double g1, double b1);
-	void plotLine(int x0, int y0, int x1, int y1, Vector455& startColor, Vector455& endColor);
+	void plotLine(int x0, int y0, float z0, int x1, int y1, float z1, double r0, double g0, double b0, double r1, double g1, double b1);
+	void plotLine(int x0, int y0, float z0, int x1, int y1, float z1, Vector455& startColor, Vector455& endColor);
 	void plotLine(PointColor& pc0, PointColor& pc1);
-	void plotLine(int x0, int y0, int x1, int y1);
+	void plotLine(int x0, int y0, float z0, int x1, int y1, float z1);
 
 	void clearOutline();
 	void saveToOutline(PointColor& pc);
-	void saveToOutline(int x, int y, double r, double g, double b);
+	void saveToOutline(int x, int y, float z, double r, double g, double b);
 	void fillOutline();
 	bool fillableRenderingMode();
+
+	void loadDataIntoMatrix(Matrix455 *mat, const GLdouble *data);
+	void transformPoint(double x, double y, double z=1.0f, double w=1.0f);
 
 public:
 	/**
@@ -111,6 +139,7 @@ public:
 	 */
 	void cs455_glEnable(GLenum cap);
 	void cs455_glDisable(GLenum cap);
+	bool cs455_glIsEnabled(GLenum cap);
 	void cs455_glClearColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
 	void cs455_glClear(GLbitfield mask);
 	void cs455_glBegin(GLenum mode);

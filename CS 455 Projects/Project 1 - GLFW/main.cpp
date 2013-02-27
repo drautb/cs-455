@@ -9,7 +9,9 @@ int main(int argc, char *argv[])
 	//TestSuite::RunAll(std::cout);
 
 	Window *window = new Window();
-	
+
+	//TestSuite::TestP3LoadMatrixD(cout, window);
+
 	if (window->Open())
 		window->EnterMainLoop();
 	else

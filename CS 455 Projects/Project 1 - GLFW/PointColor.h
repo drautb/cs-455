@@ -7,6 +7,7 @@ class PointColor
 public:
 	int				x;
 	int				y;
+	float			z;
 	Vector455		color;
 
 public:
@@ -33,6 +34,15 @@ public:
 	{
 		this->x = x;
 		this->y = y;
+		this->z = 0.0f;
+		this->color = color;
+	}
+
+	PointColor(int x, int y, float z, Vector455& color)
+	{
+		this->x = x;
+		this->y = y;
+		this->z = z;
 		this->color = color;
 	}
 
@@ -49,6 +59,7 @@ public:
 	{
 		x = -1;
 		y = -1;
+		z = 0.0f;
 		color.Zero();
 	}
 };

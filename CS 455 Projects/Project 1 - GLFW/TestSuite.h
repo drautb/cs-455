@@ -91,5 +91,17 @@ public:
 
 		return success;
 	}
+
+	static bool TestP3LoadMatrixD(ostream &output, Window *w)
+	{
+		bool success = true;
+
+		output << endl << "\t*** TestP3LoadMatrixD() ***";
+
+		GLdouble data[16] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+		w->cs455_glLoadMatrixd(data);
+
+		return success;
+	}
 };
 
