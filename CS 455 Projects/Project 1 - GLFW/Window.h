@@ -164,7 +164,9 @@ public:
 	void cs455_glScalef(GLfloat x, GLfloat y, GLfloat z);
 	void cs455_glScaleFixed(GLdouble sx, GLdouble sy, GLdouble sz, GLdouble cx, GLdouble cy, GLdouble cz);
 	void cs455_glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble near, GLdouble far);
+	void cs455_glFrustum(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar);
 	
 	void cs455_gluLookAt(GLdouble ex, GLdouble ey, GLdouble ez, GLdouble cx, GLdouble cy, GLdouble cz, GLdouble ux, GLdouble uy, GLdouble uz);
+	void cs455_gluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar);
 };
 

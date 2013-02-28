@@ -8,6 +8,7 @@
 #include "cs455Utils.h"
 #include "P2.h"
 #include "P3.h"
+#include "P4.h"
 
 using namespace Eigen;
 
@@ -110,7 +111,8 @@ void Window::redraw(void)
 	cs455_glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	//P2::redraw(this);
-	P3::redraw(this);
+	//P3::redraw(this);
+	P4::redraw(this);
 
 	if (drawMode == MODE_CS_455)
 		glDrawPixels(WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGB, GL_FLOAT, raster);
@@ -945,6 +947,11 @@ void Window::cs455_glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 
 void Window::cs455_glMatrixMode(GLenum mode)
 {
+	if (mode == CS455_GL_MODELVIEW)
+		glMatrixMode(GL_MODELVIEW);
+	else if (mode == CS455_GL_PROJECTION)
+		glMatrixMode(GL_PROJECTION);
+
 	if (mode < 0 || mode >= MATRIX_MODE_COUNT)
 		return;
 
@@ -1084,6 +1091,25 @@ void Window::cs455_glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdou
 	activeMatrix[currentMatrix] *= temp;
 }
 
+void Window::cs455_glFrustum(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
+{
+	glFrustum(left, right, bottom, top, zNear, zFar);
+
+	temp = Matrix455::Zero();
+	temp(0, 0) = (float)((2 * zNear) / (right - left));
+	temp(0, 2) = (float)((right + left) / (right - left));
+
+	temp(1, 1) = (float)((2 * zNear) / (top - bottom));
+	temp(1, 2) = (float)((top + bottom) / (top - bottom));
+
+	temp(2, 2) = (float)(-(zFar + zNear) / (zFar - zNear));
+	temp(2, 3) = (float)(-(2 * zFar * zNear) / (zFar - zNear));
+
+	temp(3, 2) = -1.0f;
+
+	activeMatrix[currentMatrix] *= temp;
+}
+
 void Window::cs455_gluLookAt(GLdouble ex, GLdouble ey, GLdouble ez, GLdouble cx, GLdouble cy, GLdouble cz, GLdouble ux, GLdouble uy, GLdouble uz)
 {
 	gluLookAt(ex, ey, ez, cx, cy, cz, ux, uy, uz);
@@ -1126,6 +1152,26 @@ void Window::cs455_gluLookAt(GLdouble ex, GLdouble ey, GLdouble ez, GLdouble cx,
 	temp(1, 3) = -(float)(ey);
 	temp(2, 3) = -(float)(ez);
 	
+	activeMatrix[currentMatrix] *= temp;
+}
+
+void Window::cs455_gluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar)
+{
+	gluPerspective(fovy, aspect, zNear, zFar);
+
+	fovy *= (M_PI / 180.0);
+	double f = 1.0 / tan(fovy / 2.0);
+
+	temp = Matrix455::Zero();
+	temp(0, 0) = (float)(f / aspect);
+
+	temp(1, 1) = (float)(f);
+
+	temp(2, 2) = (float)((zFar + zNear) / (zNear - zFar));
+	temp(2, 3) = (float)((2 * zFar * zNear) / (zNear - zFar));
+
+	temp(3, 2) = -1.0f;
+
 	activeMatrix[currentMatrix] *= temp;
 }
 
