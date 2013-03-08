@@ -146,6 +146,8 @@ public:
 	void cs455_glClear(GLbitfield mask);
 	void cs455_glBegin(GLenum mode);
 	void cs455_glEnd(void);
+	void cs455_glLightfv(GLenum light, GLenum pname, const GLfloat *params);
+	void cs455_glNormal3f(GLfloat x, GLfloat y, GLfloat z);
 	void cs455_glVertex2i(GLint x, GLint y);
 	void cs455_glVertex2f(GLfloat x, GLfloat y);
 	void cs455_glVertex3f(GLfloat x, GLfloat y, GLfloat z);

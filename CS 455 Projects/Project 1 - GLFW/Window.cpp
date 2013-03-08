@@ -863,6 +863,16 @@ void Window::cs455_glEnd()
 	renderMode = CS455_GL_NONE;
 }
 
+void Window::cs455_glLightfv(GLenum light, GLenum pname, const GLfloat *params)
+{
+
+}
+
+void Window::cs455_glNormal3f(GLfloat x, GLfloat y, GLfloat z)
+{
+
+}
+
 void Window::cs455_glVertex2i(GLint x, GLint y)
 {
 	glVertex2i(x, y);
