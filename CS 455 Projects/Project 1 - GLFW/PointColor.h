@@ -9,6 +9,7 @@ public:
 	int				y;
 	float			z;
 	Vector455		color;
+	Vector455		normal;
 
 public:
 
@@ -46,6 +47,15 @@ public:
 		this->color = color;
 	}
 
+	PointColor(int x, int y, float z, Vector455&color, Vector455& normal)
+	{
+		this->x = x;
+		this->y = y;
+		this->z = z;
+		this->color = color;
+		this->normal = normal;
+	}
+
 	~PointColor(void)
 	{
 		/*
@@ -61,6 +71,9 @@ public:
 		y = -1;
 		z = 0.0f;
 		color.Zero();
+
+		normal.Zero();
+		normal.z() = 1.0f;
 	}
 };
 

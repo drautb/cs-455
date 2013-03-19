@@ -43,6 +43,12 @@ Window::Window(void)
 	currentColor.b() = 1.0f;
 	currentColor.a() = 1.0f;
 
+	// The Normal is initialized to 0 except for z, which is 1, as per the glNormal3f Man Page
+	currentNormal.x() = 0.0f;
+	currentNormal.y() = 0.0f;
+	currentNormal.z() = 1.0f;
+	currentNormal.w() = 0.0f;
+
 	lineWidth = 1.0f;			// Default line width = 1 px
 
 	currentMatrix = CS455_GL_MODELVIEW;
@@ -148,7 +154,7 @@ void Window::checkRenderingMode(void)
 
 void Window::renderPoint()
 {
-	PointColor newPc((int)transformedPt.x(), (int)transformedPt.y(), transformedPt.z(), currentColor);
+	PointColor newPc((int)transformedPt.x(), (int)transformedPt.y(), transformedPt.z(), currentColor, currentNormal);
 	pointQ.Push(newPc);
 
 	switch (renderMode)
@@ -870,7 +876,9 @@ void Window::cs455_glLightfv(GLenum light, GLenum pname, const GLfloat *params)
 
 void Window::cs455_glNormal3f(GLfloat x, GLfloat y, GLfloat z)
 {
-
+	currentNormal.x() = x;
+	currentNormal.y() = y;
+	currentNormal.z() = z;
 }
 
 void Window::cs455_glVertex2i(GLint x, GLint y)

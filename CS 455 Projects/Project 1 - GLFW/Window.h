@@ -66,6 +66,7 @@ private:
 	 */
 	Vector455						clearColor;			// Color to put in when the screen is cleared.
 	Vector455						currentColor;		// The current color, changed by calling glColor3f
+	Vector455						currentNormal;		// The current normal, changed by calling glNormal3f
 	GLenum							renderMode;			// The rendering mode used when glBegin was called
 	GLfloat							lineWidth;			// The line width used when rending lines
 
