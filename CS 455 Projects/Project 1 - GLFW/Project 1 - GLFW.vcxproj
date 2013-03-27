@@ -74,6 +74,7 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Keyboard.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="P2.cpp" />
     <ClCompile Include="P3.cpp" />
@@ -85,6 +86,7 @@
     <ClInclude Include="cs455Utils.h" />
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="CappedQueue.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="Matrix455.h" />
     <ClInclude Include="P3.h" />
     <ClInclude Include="P4.h" />

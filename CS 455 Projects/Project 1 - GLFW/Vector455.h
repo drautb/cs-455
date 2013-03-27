@@ -2,6 +2,8 @@
 
 #include <ostream>
 
+#include <GL/glfw.h>
+
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
@@ -37,6 +39,16 @@ public:
 	 * This method puts an array of 4 values into the vector
 	 */
 	Vector455 &operator=(float *values)
+	{
+		for (int j=0; j<ROWS; j++)
+		{
+			this->row(j)(0) = values[j];
+		}
+
+		return *this;
+	}
+
+	Vector455 &operator=(const GLfloat *values)
 	{
 		for (int j=0; j<ROWS; j++)
 		{

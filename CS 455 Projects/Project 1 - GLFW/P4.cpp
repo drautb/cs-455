@@ -116,7 +116,10 @@ void P4::renderGouraud(Window *w)
 
 	w->cs455_glEnd();
 
+	w->cs455_glDisable(GL_NORMALIZE);
 	w->cs455_glDisable(GL_LIGHTING);
+	w->cs455_glDisable(GL_COLOR_MATERIAL);
+	w->cs455_glDisable(GL_LIGHT0);
 
 	return;
 }

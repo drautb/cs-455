@@ -114,11 +114,15 @@ void Window::reset(void)
 	zNear = -1.0f;
 	zFar = 1.0f;
 
+	for (int l=0; l<LIGHT_COUNT; l++)
+		lights[l].reset();
+	lights[0].diffuse << 1.0f, 1.0f, 1.0f, 1.0f;
+
 	transformedPt.Zero();
 	tempVec.Zero();
 	tempMat.Zero();
 
-	glCapEnabled = 0;
+	glCaps.clear();
 }
 
 void Window::redraw(void)
@@ -170,7 +174,7 @@ void Window::checkRenderingMode(void)
 
 void Window::renderPoint()
 {
-	PointColor newPc((int)transformedPt.x(), (int)transformedPt.y(), transformedPt.z(), currentColor, transformedNormal);
+	PointColor newPc((int)transformedPt.x(), (int)transformedPt.y(), transformedPt.z(), transformedColor, transformedNormal);
 	pointQ.Push(newPc);
 
 	switch (renderMode)
@@ -335,7 +339,7 @@ void Window::setPixel(unsigned int x, unsigned int y, float z, double r, double 
 	if (x < vpXMin + vpWidth && x > vpXMin &&
 		y < vpYMin + vpHeight && y > vpYMin)
 	{
-		if ((glCapEnabled & GL_DEPTH_TEST) != 0)
+		if (cs455_glIsEnabled(GL_DEPTH_TEST) != 0)
 		{
 			int zBufIdx = y * WINDOW_WIDTH + x;
 			if (z >= zNear && z <= zFar && zBuffer[zBufIdx] > z)
@@ -368,7 +372,7 @@ void Window::setPixel(unsigned int x, unsigned int y, float z, double r, double 
 
 void Window::setZPlane(PointColor& pc0, PointColor& pc1, PointColor& pc2)
 {
-	if ((glCapEnabled & GL_DEPTH_TEST) == 0)
+	if (!cs455_glIsEnabled(GL_DEPTH_TEST))
 		return;
 
 	p0.x() = (float)pc0.x;
@@ -395,7 +399,7 @@ void Window::setZPlane(PointColor& pc0, PointColor& pc1, PointColor& pc2)
 
 float Window::getZValue(int x, int y)
 {
-	if ((glCapEnabled & GL_DEPTH_TEST) == 0)
+	if (!cs455_glIsEnabled(GL_DEPTH_TEST))
 		return 0.0f;
 
 	return (float)((-a * x - b * y - d) / c);
@@ -712,27 +716,71 @@ void Window::loadDataIntoMatrix(Matrix455 *mat, const GLdouble *data)
 
 void Window::transformPoint(double x, double y, double z, double w)
 {
+	// Transform the normal
+	transformedNormal.Zero();
+	transformedNormal = modelInverseTranspose * currentNormal;
+
+	// Transform the point
 	transformedPt = Vector455::Identity();
 	transformedPt.x() = (float)x;
 	transformedPt.y() = (float)y;
 	transformedPt.z() = (float)z;
 	transformedPt.w() = (float)w;
 
-	// 1) Apply projection and modelview transformations
-	transformedPt = composedMatrix * transformedPt;
+	// 1) Apply modelview transformation
+	transformedPt = activeMatrix[CS455_GL_MODELVIEW] * transformedPt;
 
-	// 2) Divide by w
+	// 2) Apply lighting transformations
+	if (cs455_glIsEnabled(GL_LIGHTING))
+	{
+		calculateNetLight(transformedPt, transformedNormal);
+		if (cs455_glIsEnabled(GL_COLOR_MATERIAL))
+		{
+			transformedColor = netLight.cwiseProduct(currentColor);
+		}
+		else
+		{
+			tempVec << 0.8f, 0.8f, 0.8f, 1.0f;
+			currentColor << 0.2f, 0.2f, 0.2f, 0.0f;
+			transformedColor = netLight.cwiseProduct(tempVec) + currentColor;
+		}
+	}
+	else
+	{
+		transformedColor = currentColor;
+	}
+
+	// 3) Apply projection transformations
+	transformedPt = activeMatrix[CS455_GL_PROJECTION] * transformedPt;
+
+	// 4) Divide by w
 	transformedPt /= transformedPt.w();
 
-	// 3) Size to viewport
+	// 5) Size to viewport
 	transformedPt.x() = (float)((transformedPt.x() + 1) * vpWidth / 2 + vpXMin);
 	transformedPt.y() = (float)((transformedPt.y() + 1) * vpHeight / 2 + vpYMin);
 
-	// 4) Transform the normal
-	transformedNormal.Zero();
-	transformedNormal = modelInverseTranspose * currentNormal;
-
 	return;
+}
+
+void Window::calculateNetLight(Vector455 &ptPos, Vector455 &ptNormal)
+{
+	netLight.Zero();
+	int glLightEnum = 0;
+
+	for (int l=0; l<LIGHT_COUNT; l++)
+	{
+		glLightEnum = 0x4000 + l;
+		if (cs455_glIsEnabled(glLightEnum))
+		{
+			tempVec = lights[l].position - ptPos;
+			tempVec.normalize();
+
+			netLight += lights[l].ambient + 
+						max(0.0f, ptNormal.dot(tempVec)) *
+						lights[l].diffuse;
+		}
+	}
 }
 
 #pragma region OPENGL WRAPPERS
@@ -743,19 +791,19 @@ void Window::cs455_glEnable(GLenum cap)
 {
 	glEnable(cap);
 
-	glCapEnabled |= cap;
+	glCaps[cap] = true;
 }
 
 void Window::cs455_glDisable(GLenum cap)
 {
 	glDisable(cap);
 
-	glCapEnabled &= ~cap;
+	glCaps[cap] = false;
 }
 
 bool Window::cs455_glIsEnabled(GLenum cap)
 {
-	return (glIsEnabled(cap) && ((glCapEnabled & cap) != 0));
+	return glCaps[cap];
 }
 
 void Window::cs455_glClearColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
@@ -893,7 +941,35 @@ void Window::cs455_glLightfv(GLenum light, GLenum pname, const GLfloat *params)
 {
 	glLightfv(light, pname, params);
 
+	if (cs455_glIsEnabled(GL_LIGHTING))
+	{
+		int myLight = ((int)light) - 0x4000;
+		if (myLight >= 0 && myLight < LIGHT_COUNT)
+		{
+			switch (pname)
+			{
+				case GL_POSITION:
+					lights[myLight].position = params;
+					lights[myLight].position = activeMatrix[CS455_GL_MODELVIEW] * lights[myLight].position;
+					break;
 
+				case GL_AMBIENT:
+					lights[myLight].ambient = params;
+					break;
+
+				case GL_DIFFUSE:
+					lights[myLight].diffuse = params;
+					break;
+
+				case GL_SPECULAR:
+					lights[myLight].specular = params;
+					break;
+
+				default:
+					break;
+			}
+		}
+	}
 }
 
 void Window::cs455_glNormal3f(GLfloat x, GLfloat y, GLfloat z)

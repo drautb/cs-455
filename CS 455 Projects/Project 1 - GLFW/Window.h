@@ -1,10 +1,13 @@
 #pragma once
 
+#include <map>
+
 #include <GL/glfw.h>
 
 #include "Keyboard.h"
 #include "PointColor.h"
 #include "CappedQueue.h"
+#include "Light.h"
 #include "cs455Utils.h"
 
 using namespace Eigen;
@@ -34,6 +37,8 @@ private:
 	const static int MODE_CS_455			= 2;
 	
 	const static int MATRIX_MODE_COUNT		= 2;
+
+	const static int LIGHT_COUNT			= 8;
 
 public:
 	/** 
@@ -83,8 +88,9 @@ private:
 		
 	Vector455						transformedPt;		// Temp variable that holds a transformed point and related information
 	Vector455						transformedNormal;	
+	Vector455						transformedColor;
 
-	long							glCapEnabled;		// Variable that holds all the enabled/disabled cap. data.
+	std::map<GLenum, bool>			glCaps;		// Variable that holds all the enabled/disabled cap. data.
 
 	Hyperplane<float, 3>			currentPlane;		// Plane used to calculate z values
 	Vector455						coeffs;
@@ -92,6 +98,9 @@ private:
 	Vector3f						p0, p1, p2;			// 3 Points to form current Plane.
 
 	Vector3f						f, up, s, u;		// Vectors used for gluLookAt
+
+	Light							lights[LIGHT_COUNT];	// Array of lights
+	Vector455						netLight;				// The overall effect of all active lights
 
 	Matrix455						tempMat;
 	Vector455						tempVec;
@@ -141,6 +150,7 @@ private:
 
 	void loadDataIntoMatrix(Matrix455 *mat, const GLdouble *data);
 	void transformPoint(double x, double y, double z=1.0f, double w=1.0f);
+	void calculateNetLight(Vector455 &ptPos, Vector455 &ptNormal);
 
 public:
 	/**
