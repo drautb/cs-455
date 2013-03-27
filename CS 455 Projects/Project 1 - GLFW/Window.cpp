@@ -10,6 +10,7 @@
 #include "P3.h"
 #include "P4.h"
 
+using namespace std;
 using namespace Eigen;
 
 void GLFWCALL ResizeCallback(int width, int height)
@@ -680,7 +681,10 @@ void Window::fillOutline()
 	for (int y=0; y<WINDOW_HEIGHT; y++)
 	{
 		if (outline[y][0].x != -1 && outline[y][1].x != -1)
+		{
 			plotLine(outline[y][0], outline[y][1]);		
+			//std::cout << "Plotted fill line, start red: " << outline[y][0].color.r() << ", end red: " << outline[y][1].color.r() << std::endl;
+		}
 	}
 
 	clearOutline();
@@ -717,7 +721,6 @@ void Window::loadDataIntoMatrix(Matrix455 *mat, const GLdouble *data)
 void Window::transformPoint(double x, double y, double z, double w)
 {
 	// Transform the normal
-	transformedNormal.Zero();
 	transformedNormal = modelInverseTranspose * currentNormal;
 
 	// Transform the point
@@ -765,7 +768,7 @@ void Window::transformPoint(double x, double y, double z, double w)
 
 void Window::calculateNetLight(Vector455 &ptPos, Vector455 &ptNormal)
 {
-	netLight.Zero();
+	netLight = Vector455::Zero();
 	int glLightEnum = 0;
 
 	for (int l=0; l<LIGHT_COUNT; l++)
@@ -781,6 +784,9 @@ void Window::calculateNetLight(Vector455 &ptPos, Vector455 &ptNormal)
 						lights[l].diffuse;
 		}
 	}
+
+	tempVec << 0.2f, 0.2f, 0.2f, 0.0f;
+	netLight += tempVec;
 }
 
 #pragma region OPENGL WRAPPERS
