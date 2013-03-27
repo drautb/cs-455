@@ -168,6 +168,8 @@ public:
 	void cs455_glClear(GLbitfield mask);
 	void cs455_glBegin(GLenum mode);
 	void cs455_glEnd(void);
+	void cs455_glFogf(GLenum pname, GLfloat param);
+	void cs455_glFogfv(GLenum pname, const GLfloat *params);
 	void cs455_glLightfv(GLenum light, GLenum pname, const GLfloat *params);
 	void cs455_glMaterialf(GLenum face, GLenum pname, GLfloat param);
 	void cs455_glMaterialfv(GLenum face, GLenum pname, const GLfloat *params);

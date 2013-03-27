@@ -15,6 +15,12 @@ void P4::redraw(Window *w)
 		renderGouraud(w);
 	else if (sceneToRender == 3)
 		renderSpecular(w);
+	else if (sceneToRender == 4)
+		renderLinearFog(w);
+	else if (sceneToRender == 5)
+		renderExpFog(w);
+	else if (sceneToRender == 6)
+		renderExpSqFog(w);
 }
 
 void P4::renderFrustum(Window *w)
@@ -181,4 +187,136 @@ void P4::renderSpecular(Window *w)
 	w->cs455_glDisable(GL_LIGHTING);
 	w->cs455_glDisable(GL_COLOR_MATERIAL);
 	w->cs455_glDisable(GL_LIGHT0);
+}
+
+void P4::renderLinearFog(Window *w)
+{
+	w->cs455_glViewport(0, 0, 640, 480);
+	w->cs455_glMatrixMode(Window::CS455_GL_PROJECTION);
+	w->cs455_glLoadIdentity();
+	w->cs455_glMatrixMode(Window::CS455_GL_MODELVIEW);
+	w->cs455_glLoadIdentity();
+
+	w->cs455_glEnable(GL_FOG);
+
+	float fog_color[] = {0,1,0,1};
+
+	w->cs455_glFogfv(GL_FOG_COLOR, fog_color);
+	
+	w->cs455_glFogf(GL_FOG_MODE, GL_LINEAR);
+	w->cs455_glFogf(GL_FOG_START, 0.4f);
+	w->cs455_glFogf(GL_FOG_END, 1.0f);
+	w->cs455_glFogf(GL_FOG_DENSITY, 1.0f);
+
+	w->cs455_glMatrixMode(GL_PROJECTION);
+	w->cs455_glLoadIdentity();
+	w->cs455_glMatrixMode(GL_MODELVIEW);
+	w->cs455_glLoadIdentity();
+
+	w->cs455_glBegin(GL_TRIANGLES);
+		w->cs455_glColor3f(0.0f,0.0f,1.0f);
+		w->cs455_glVertex3f(-0.4f,-0.6f,-0.1f);
+		w->cs455_glVertex3f(0.4f,-0.6f,-0.1f);
+		w->cs455_glVertex3f(0.4f,-0.1f,-0.1f);
+		w->cs455_glVertex3f(0.4f,-0.1f,-0.1f);
+		w->cs455_glVertex3f(-0.4f,-0.1f,-0.1f);
+		w->cs455_glVertex3f(-0.4f,-0.6f,-0.1f);
+		w->cs455_glColor3f(1.0f,0.0f,1.0f);
+		w->cs455_glVertex3f(-0.4f,-0.1f,-0.1f);
+		w->cs455_glVertex3f(0.4f,-0.1f,-0.1f);
+		w->cs455_glVertex3f(0.3f,0.5f,-0.99f);
+		w->cs455_glVertex3f(0.3f,0.5f,-0.99f);
+		w->cs455_glVertex3f(-0.3f,0.5f,-0.99f);
+		w->cs455_glVertex3f(-0.4f,-0.1f,-0.1f);
+	w->cs455_glEnd();
+
+	w->cs455_glDisable(GL_FOG);
+}
+
+void P4::renderExpFog(Window *w)
+{
+	w->cs455_glViewport(0, 0, 640, 480);
+	w->cs455_glMatrixMode(Window::CS455_GL_PROJECTION);
+	w->cs455_glLoadIdentity();
+	w->cs455_glMatrixMode(Window::CS455_GL_MODELVIEW);
+	w->cs455_glLoadIdentity();
+
+	w->cs455_glEnable(GL_FOG);
+
+	float fog_color[] = {0.0f,1.0f,0.0f,1.0f};
+
+	w->cs455_glFogfv(GL_FOG_COLOR, fog_color);
+
+	w->cs455_glFogf(GL_FOG_MODE, GL_EXP);
+	w->cs455_glFogf(GL_FOG_START, 0.4f);
+	w->cs455_glFogf(GL_FOG_END, 1.0f);
+	w->cs455_glFogf(GL_FOG_DENSITY, 1.0f);
+
+	w->cs455_glMatrixMode(GL_PROJECTION);
+	w->cs455_glLoadIdentity();
+	w->cs455_glMatrixMode(GL_MODELVIEW);
+	w->cs455_glLoadIdentity();
+
+	w->cs455_glBegin(GL_TRIANGLES);
+		w->cs455_glColor3f(0.0f,0.0f,1.0f);
+		w->cs455_glVertex3f(-0.4f,-0.6f,-0.1f);
+		w->cs455_glVertex3f(0.4f,-0.6f,-0.1f);
+		w->cs455_glVertex3f(0.4f,-0.1f,-0.1f);
+		w->cs455_glVertex3f(0.4f,-0.1f,-0.1f);
+		w->cs455_glVertex3f(-0.4f,-0.1f,-0.1f);
+		w->cs455_glVertex3f(-0.4f,-0.6f,-0.1f);
+		w->cs455_glColor3f(1.0f,0.0f,1.0f);
+		w->cs455_glVertex3f(-0.4f,-0.1f,-0.1f);
+		w->cs455_glVertex3f(0.4f,-0.1f,-0.1f);
+		w->cs455_glVertex3f(0.3f,0.5f,-0.99f);
+		w->cs455_glVertex3f(0.3f,0.5f,-0.99f);
+		w->cs455_glVertex3f(-0.3f,0.5f,-0.99f);
+		w->cs455_glVertex3f(-0.4f,-0.1f,-0.1f);
+	w->cs455_glEnd();
+
+	w->cs455_glDisable(GL_FOG);
+}
+
+void P4::renderExpSqFog(Window *w)
+{
+	w->cs455_glViewport(0, 0, 640, 480);
+	w->cs455_glMatrixMode(Window::CS455_GL_PROJECTION);
+	w->cs455_glLoadIdentity();
+	w->cs455_glMatrixMode(Window::CS455_GL_MODELVIEW);
+	w->cs455_glLoadIdentity();
+
+	w->cs455_glEnable(GL_FOG);
+
+	float fog_color[] = {0.0f,1.0f,0.0f,1.0f};
+
+	w->cs455_glFogfv(GL_FOG_COLOR, fog_color);
+
+	w->cs455_glFogf(GL_FOG_MODE, GL_EXP2);
+	w->cs455_glFogf(GL_FOG_START, 0.4f);
+	w->cs455_glFogf(GL_FOG_END, 1.0f);
+	w->cs455_glFogf(GL_FOG_DENSITY, 1.0f);
+
+	w->cs455_glMatrixMode(GL_PROJECTION);
+	w->cs455_glLoadIdentity();
+	w->cs455_glMatrixMode(GL_MODELVIEW);
+	w->cs455_glLoadIdentity();
+
+	w->cs455_glBegin(GL_TRIANGLES);
+		w->cs455_glColor3f(0.0f,0.0f,1.0f);
+		w->cs455_glVertex3f(-0.4f,-0.6f,-0.1f);
+		w->cs455_glVertex3f(0.4f,-0.6f,-0.1f);
+		w->cs455_glVertex3f(0.4f,-0.1f,-0.1f);
+		w->cs455_glVertex3f(0.4f,-0.1f,-0.1f);
+		w->cs455_glVertex3f(-0.4f,-0.1f,-0.1f);
+		w->cs455_glVertex3f(-0.4f,-0.6f,-0.1f);
+		w->cs455_glColor3f(1.0f,0.0f,1.0f);
+		w->cs455_glVertex3f(-0.4f,-0.1f,-0.1f);
+		w->cs455_glVertex3f(0.4f,-0.1f,-0.1f);
+		w->cs455_glVertex3f(0.3f,0.5f,-0.99f);
+		w->cs455_glVertex3f(0.3f,0.5f,-0.99f);
+		w->cs455_glVertex3f(-0.3f,0.5f,-0.99f);
+		w->cs455_glVertex3f(-0.4f,-0.1f,-0.1f);
+	w->cs455_glEnd();
+
+	w->cs455_glDisable(GL_FOG);
 }

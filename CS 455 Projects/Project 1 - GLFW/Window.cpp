@@ -729,6 +729,8 @@ void Window::transformPoint(double x, double y, double z, double w)
 {
 	// Transform the normal
 	transformedNormal = modelInverseTranspose * currentNormal;
+	if (cs455_glIsEnabled(GL_NORMALIZE))
+		transformedNormal.normalize();
 
 	// Transform the point
 	transformedPt = Vector455::Identity();
@@ -980,6 +982,20 @@ void Window::cs455_glEnd()
 	}
 
 	renderMode = CS455_GL_NONE;
+}
+
+void Window::cs455_glFogf(GLenum pname, GLfloat param)
+{
+	glFogf(pname, param);
+
+
+}
+
+void Window::cs455_glFogfv(GLenum pname, const GLfloat *params)
+{
+	glFogfv(pname, params);
+
+
 }
 
 void Window::cs455_glLightfv(GLenum light, GLenum pname, const GLfloat *params)
