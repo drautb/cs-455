@@ -13,6 +13,8 @@ void P4::redraw(Window *w)
 		renderPerspective(w);
 	else if (sceneToRender == 2)
 		renderGouraud(w);
+	else if (sceneToRender == 3)
+		renderSpecular(w);
 }
 
 void P4::renderFrustum(Window *w)
@@ -122,4 +124,61 @@ void P4::renderGouraud(Window *w)
 	w->cs455_glDisable(GL_LIGHT0);
 
 	return;
+}
+
+void P4::renderSpecular(Window *w)
+{
+	w->cs455_glViewport(0, 0, 640, 480);
+	w->cs455_glMatrixMode(Window::CS455_GL_PROJECTION);
+	w->cs455_glLoadIdentity();
+	w->cs455_glMatrixMode(Window::CS455_GL_MODELVIEW);
+	w->cs455_glLoadIdentity();
+
+	w->cs455_glEnable(GL_LIGHTING);
+	w->cs455_glEnable(GL_COLOR_MATERIAL);
+	w->cs455_glEnable(GL_LIGHT0);
+
+	float diffuse_color[4] = {0.7f,0.7f,0.7f,1.0f};
+	float ambient_color[4] = {0.1f,0.1f,0.1f,1.0f};
+	float specular_color[4] = {0.0f,1.0f,0.0f,1.0f};
+	float position[4] = {1.0f,0.0f,-10.0f,1.0f};
+	float zero[4] = {0.0f,0.0f,0.0f,0.0f};
+
+	w->cs455_glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_color);
+	w->cs455_glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_color);
+	w->cs455_glLightfv(GL_LIGHT0, GL_SPECULAR, specular_color);
+	w->cs455_glLightfv(GL_LIGHT0, GL_POSITION, position);
+
+	float specular_surface_color[4] = {0.0f, 1.0f, 0.9f, 1.0f};
+	w->cs455_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular_surface_color);
+	w->cs455_glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 1);
+
+	w->cs455_glColor3f(1,0,0);
+	float dp = (float)M_PI/16.0f; // 16 picked arbitrarily; try other numbers too
+	w->cs455_glBegin(GL_TRIANGLES);
+	for(float theta = 0; theta < 2*M_PI; theta+=dp)
+	{
+		for(float phi = 0; phi < M_PI; phi+=dp)
+		{
+			w->cs455_glNormal3f(cos(theta)*sin(phi), cos(phi), sin(theta)*sin(phi));
+			w->cs455_glVertex3f(cos(theta)*sin(phi), cos(phi), sin(theta)*sin(phi));
+			w->cs455_glNormal3f(cos(theta+dp)*sin(phi), cos(phi), sin(theta+dp)*sin(phi));
+			w->cs455_glVertex3f(cos(theta+dp)*sin(phi), cos(phi), sin(theta+dp)*sin(phi));
+			w->cs455_glNormal3f(cos(theta+dp)*sin(phi+dp), cos(phi+dp), sin(theta+dp)*sin(phi+dp));
+			w->cs455_glVertex3f(cos(theta+dp)*sin(phi+dp), cos(phi+dp), sin(theta+dp)*sin(phi+dp));
+			w->cs455_glNormal3f(cos(theta)*sin(phi), cos(phi), sin(theta)*sin(phi));
+			w->cs455_glVertex3f(cos(theta)*sin(phi), cos(phi), sin(theta)*sin(phi));
+			w->cs455_glNormal3f(cos(theta+dp)*sin(phi+dp), cos(phi+dp), sin(theta+dp)*sin(phi+dp));
+			w->cs455_glVertex3f(cos(theta+dp)*sin(phi+dp), cos(phi+dp), sin(theta+dp)*sin(phi+dp));
+			w->cs455_glNormal3f(cos(theta)*sin(phi+dp), cos(phi+dp), sin(theta)*sin(phi+dp));
+			w->cs455_glVertex3f(cos(theta)*sin(phi+dp), cos(phi+dp), sin(theta)*sin(phi+dp));
+		}
+	}
+	w->cs455_glEnd();
+
+	w->cs455_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, zero);
+
+	w->cs455_glDisable(GL_LIGHTING);
+	w->cs455_glDisable(GL_COLOR_MATERIAL);
+	w->cs455_glDisable(GL_LIGHT0);
 }

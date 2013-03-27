@@ -119,9 +119,11 @@ void Window::reset(void)
 		lights[l].reset();
 	lights[0].diffuse << 1.0f, 1.0f, 1.0f, 1.0f;
 
-	transformedPt.Zero();
-	tempVec.Zero();
-	tempMat.Zero();
+	transformedPt = Vector455::Zero();
+	transformedNormal = Vector455::Zero();
+	transformedColor = Vector455::Zero();
+	tempVec = Vector455::Zero();
+	tempMat = Matrix455::Zero();
 
 	glCaps.clear();
 }
@@ -976,6 +978,20 @@ void Window::cs455_glLightfv(GLenum light, GLenum pname, const GLfloat *params)
 			}
 		}
 	}
+}
+
+void Window::cs455_glMaterialf(GLenum face, GLenum pname, GLfloat param)
+{
+	glMaterialf(face, pname, param);
+
+
+}
+
+void Window::cs455_glMaterialfv(GLenum face, GLenum pname, const GLfloat *params)
+{
+	glMaterialfv(face, pname, params);
+
+
 }
 
 void Window::cs455_glNormal3f(GLfloat x, GLfloat y, GLfloat z)

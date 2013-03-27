@@ -12,13 +12,13 @@ Light::~Light(void)
 
 void Light::reset(void) 
 {
-	position.Zero();
+	position = Vector455::Zero();
 	position.z() = 1.0f;
 
-	ambient.Zero();
+	ambient = Vector455::Zero();
 	ambient.w() = 1.0f;
 
-	diffuse.Zero();
+	diffuse = Vector455::Zero();
 
-	specular.Zero();
+	specular = Vector455::Zero();
 }
