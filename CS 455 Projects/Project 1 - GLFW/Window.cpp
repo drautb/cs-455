@@ -29,49 +29,9 @@ Window::Window(void)
 
 	drawMode = MODE_OPENGL;
 
-	/**
-	 * Set Defaults
-	 */
-	renderMode = CS455_GL_NONE;
-	nIsOdd = true;
-	filling = false;
+	reset();
 
-	clearColor.Zero();			// Default clear color = black
-
-	currentColor.r() = 1.0f;	// Default render color = white
-	currentColor.g() = 1.0f;	
-	currentColor.b() = 1.0f;
-	currentColor.a() = 1.0f;
-
-	// The Normal is initialized to 0 except for z, which is 1, as per the glNormal3f Man Page
-	currentNormal.x() = 0.0f;
-	currentNormal.y() = 0.0f;
-	currentNormal.z() = 1.0f;
-	currentNormal.w() = 0.0f;
-
-	lineWidth = 1.0f;			// Default line width = 1 px
-
-	currentMatrix = CS455_GL_MODELVIEW;
-	for (int s=0; s<MATRIX_MODE_COUNT; s++)
-	{
-		while (!matrixStack[s].empty()) matrixStack[s].pop();
-		activeMatrix[s] = Matrix455::Identity();
-		matrixStack[s].push(activeMatrix[s]);
-	}
-
-	composedMatrix = Matrix455::Identity();
-
-	vpXMin = vpYMin = 0;
-	vpWidth = WINDOW_WIDTH;
-	vpHeight = WINDOW_HEIGHT;
-	zNear = -1.0f;
-	zFar = 1.0f;
-
-	transformedPt.Zero();
-
-	glCapEnabled = 0;
-
-	sceneToRender = 0;
+	sceneToRender = 2;
 }
 
 Window::~Window(void)
@@ -111,6 +71,56 @@ void Window::EnterMainLoop(void)
 /**********************************************
  * Private Methods
  */
+void Window::reset(void)
+{
+	/**
+	 * Set Defaults
+	 */
+	renderMode = CS455_GL_NONE;
+	nIsOdd = true;
+	filling = false;
+
+	clearColor.Zero();			// Default clear color = black
+
+	currentColor.r() = 1.0f;	// Default render color = white
+	currentColor.g() = 1.0f;	
+	currentColor.b() = 1.0f;
+	currentColor.a() = 1.0f;
+
+	// The Normal is initialized to 0 except for z, which is 1, as per the glNormal3f Man Page
+	currentNormal.x() = 0.0f;
+	currentNormal.y() = 0.0f;
+	currentNormal.z() = 1.0f;
+	currentNormal.w() = 0.0f;
+
+	lineWidth = 1.0f;			// Default line width = 1 px
+
+	clearOutline();
+
+	currentMatrix = CS455_GL_MODELVIEW;
+	for (int s=0; s<MATRIX_MODE_COUNT; s++)
+	{
+		while (!matrixStack[s].empty()) matrixStack[s].pop();
+		activeMatrix[s] = Matrix455::Identity();
+		matrixStack[s].push(activeMatrix[s]);
+	}
+
+	composedMatrix = Matrix455::Identity();
+	modelInverseTranspose = Matrix455::Identity();
+
+	vpXMin = vpYMin = 0;
+	vpWidth = WINDOW_WIDTH;
+	vpHeight = WINDOW_HEIGHT;
+	zNear = -1.0f;
+	zFar = 1.0f;
+
+	transformedPt.Zero();
+	tempVec.Zero();
+	tempMat.Zero();
+
+	glCapEnabled = 0;
+}
+
 void Window::redraw(void)
 {
 	cs455_glClearColor(0, 0, 0, 1);
@@ -145,16 +155,22 @@ void Window::checkRenderingMode(void)
 		drawMode = MODE_CS_455;
 
 	if (KEY_HIT(GLFW_KEY_LEFT))
+	{
 		sceneToRender--;
+		reset();
+	}
 	else if (KEY_HIT(GLFW_KEY_RIGHT))
+	{
 		sceneToRender++;
+		reset();
+	}
 
 	return;
 }
 
 void Window::renderPoint()
 {
-	PointColor newPc((int)transformedPt.x(), (int)transformedPt.y(), transformedPt.z(), currentColor, currentNormal);
+	PointColor newPc((int)transformedPt.x(), (int)transformedPt.y(), transformedPt.z(), currentColor, transformedNormal);
 	pointQ.Push(newPc);
 
 	switch (renderMode)
@@ -620,39 +636,34 @@ void Window::clearOutline()
 
 void Window::saveToOutline(PointColor& pc)
 {
-	if (!fillableRenderingMode())
-		return;
-
-	if (pc.y < 0 || pc.y > WINDOW_HEIGHT)
-		return;
-
-	if (outline[pc.y][0].x == -1)
-		outline[pc.y][0] = pc;
-	else if (outline[pc.y][1].x == -1)
-		outline[pc.y][1] = pc;
-	else
+	if (fillableRenderingMode() && pc.y > 0 && pc.y < WINDOW_HEIGHT)
 	{
-		// There's a contest, both buffer slots are full at this y position, so we 
-		// need to determine which one should be discarded. We'll keep the two that
-		// have the greatest dx
-		if (abs(pc.x - outline[pc.y][0].x) > abs(outline[pc.y][1].x - outline[pc.y][0].x))
+		if (outline[pc.y][0].x == -1)
+			outline[pc.y][0] = pc;
+		else if (outline[pc.y][1].x == -1)
 			outline[pc.y][1] = pc;
+		else
+		{
+			// There's a contest, both buffer slots are full at this y position, so we 
+			// need to determine which one should be discarded. We'll keep the two that
+			// have the greatest dx
+			if (abs(pc.x - outline[pc.y][0].x) > abs(outline[pc.y][1].x - outline[pc.y][0].x))
+				outline[pc.y][1] = pc;
+		}
 	}
 }
 
 void Window::saveToOutline(int x, int y, float z, double r, double g, double b)
 {
-	if (!fillableRenderingMode())
-		return;
+	if (fillableRenderingMode())
+	{
+		tempPC.x = x;
+		tempPC.y = y;
+		tempPC.z = z;
+		tempPC.color << r, g, b, 0.0f;
 
-	Vector455 color;
-	color.r() = (float)r;
-	color.g() = (float)g;
-	color.b() = (float)b;
-
-	PointColor pc(x, y, z, color);
-
-	saveToOutline(pc);
+		saveToOutline(tempPC);
+	}
 }
 
 void Window::fillOutline()
@@ -716,6 +727,10 @@ void Window::transformPoint(double x, double y, double z, double w)
 	// 3) Size to viewport
 	transformedPt.x() = (float)((transformedPt.x() + 1) * vpWidth / 2 + vpXMin);
 	transformedPt.y() = (float)((transformedPt.y() + 1) * vpHeight / 2 + vpYMin);
+
+	// 4) Transform the normal
+	transformedNormal.Zero();
+	transformedNormal = modelInverseTranspose * currentNormal;
 
 	return;
 }
@@ -791,7 +806,12 @@ void Window::cs455_glBegin(GLenum mode)
 	glBegin(mode);
 
 	// Generate the composed matrix
-	composedMatrix = activeMatrix[0] * activeMatrix[1];
+	composedMatrix = activeMatrix[CS455_GL_MODELVIEW] * activeMatrix[CS455_GL_PROJECTION];
+
+	// Generate the inverse transpose of the modelview matrix to transform the normals
+	modelInverseTranspose = activeMatrix[CS455_GL_MODELVIEW];
+	modelInverseTranspose.transpose();
+	modelInverseTranspose.inverse();
 
 	renderMode = mode;
 
@@ -871,11 +891,15 @@ void Window::cs455_glEnd()
 
 void Window::cs455_glLightfv(GLenum light, GLenum pname, const GLfloat *params)
 {
+	glLightfv(light, pname, params);
+
 
 }
 
 void Window::cs455_glNormal3f(GLfloat x, GLfloat y, GLfloat z)
 {
+	glNormal3f(x, y, z);
+
 	currentNormal.x() = x;
 	currentNormal.y() = y;
 	currentNormal.z() = z;
@@ -1009,61 +1033,61 @@ void Window::cs455_glMultMatrixd(const GLdouble *m)
 {
 	glMultMatrixd(m);
 
-	loadDataIntoMatrix(&temp, m);
+	loadDataIntoMatrix(&tempMat, m);
 
-	activeMatrix[currentMatrix] *= temp;
+	activeMatrix[currentMatrix] *= tempMat;
 }
 
 void Window::cs455_glRotatef(GLfloat theta, GLfloat x, GLfloat y, GLfloat z)
 {
 	glRotatef(theta, x, y, z);
 
-	temp = Matrix455::Identity();
+	tempMat = Matrix455::Identity();
 	
 	theta *= (float)(M_PI / 180);
 
 	double cosTheta = cos(theta);
 	double sinTheta = sin(theta);
 
-	temp(0, 0) = (float)(pow(x, 2) * (1-cosTheta) + cosTheta);
-	temp(0, 1) = (float)(x * y * (1-cosTheta) - z * sinTheta);
-	temp(0, 2) = (float)(x * z * (1-cosTheta) + y * sinTheta);
+	tempMat(0, 0) = (float)(pow(x, 2) * (1-cosTheta) + cosTheta);
+	tempMat(0, 1) = (float)(x * y * (1-cosTheta) - z * sinTheta);
+	tempMat(0, 2) = (float)(x * z * (1-cosTheta) + y * sinTheta);
 
-	temp(1, 0) = (float)(y * x * (1-cosTheta) + z * sinTheta);
-	temp(1, 1) = (float)(pow(y, 2) * (1-cosTheta) + cosTheta);
-	temp(1, 2) = (float)(y * z * (1-cosTheta) - x * sinTheta);
+	tempMat(1, 0) = (float)(y * x * (1-cosTheta) + z * sinTheta);
+	tempMat(1, 1) = (float)(pow(y, 2) * (1-cosTheta) + cosTheta);
+	tempMat(1, 2) = (float)(y * z * (1-cosTheta) - x * sinTheta);
 	
-	temp(2, 0) = (float)(z * x * (1-cosTheta) - y * sinTheta);
-	temp(2, 1) = (float)(z * y * (1-cosTheta) + x * sinTheta);
-	temp(2, 2) = (float)(pow(z, 2) * (1-cosTheta) + cosTheta);
+	tempMat(2, 0) = (float)(z * x * (1-cosTheta) - y * sinTheta);
+	tempMat(2, 1) = (float)(z * y * (1-cosTheta) + x * sinTheta);
+	tempMat(2, 2) = (float)(pow(z, 2) * (1-cosTheta) + cosTheta);
 
-	activeMatrix[currentMatrix] *= temp;
+	activeMatrix[currentMatrix] *= tempMat;
 }
 
 void Window::cs455_glTranslatef(GLfloat x, GLfloat y, GLfloat z)
 {
 	glTranslatef(x, y, z);
 
-	temp = Matrix455::Identity();
+	tempMat = Matrix455::Identity();
 
-	temp(0, 3) = x;
-	temp(1, 3) = y;
-	temp(2, 3) = z;
+	tempMat(0, 3) = x;
+	tempMat(1, 3) = y;
+	tempMat(2, 3) = z;
 
-	activeMatrix[currentMatrix] *= temp;
+	activeMatrix[currentMatrix] *= tempMat;
 }
 
 void Window::cs455_glScalef(GLfloat x, GLfloat y, GLfloat z)
 {
 	glScalef(x, y, z);
 
-	temp = Matrix455::Identity();
+	tempMat = Matrix455::Identity();
 
-	temp(0, 0) = x;
-	temp(1, 1) = y;
-	temp(2, 2) = z;
+	tempMat(0, 0) = x;
+	tempMat(1, 1) = y;
+	tempMat(2, 2) = z;
 
-	activeMatrix[currentMatrix] *= temp;
+	activeMatrix[currentMatrix] *= tempMat;
 }
 
 void Window::cs455_glScaleFixed(GLdouble sx, GLdouble sy, GLdouble sz, GLdouble cx, GLdouble cy, GLdouble cz)
@@ -1092,40 +1116,40 @@ void Window::cs455_glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdou
 {
 	glOrtho(left, right, bottom, top, near, far);
 
-	temp = Matrix455::Identity();
+	tempMat = Matrix455::Identity();
 
-	temp(0, 0) = (float)(2 / (right - left));
-	temp(0, 3) = (float)-((right + left) / (right - left));
+	tempMat(0, 0) = (float)(2 / (right - left));
+	tempMat(0, 3) = (float)-((right + left) / (right - left));
 
-	temp(1, 1) = (float)(2 / (top - bottom));
-	temp(1, 3) = (float)-((top + bottom) / (top - bottom));
+	tempMat(1, 1) = (float)(2 / (top - bottom));
+	tempMat(1, 3) = (float)-((top + bottom) / (top - bottom));
 
-	temp(2, 2) = (float)(-2 / (far - near));
-	temp(2, 3) = (float)-((far + near) / (far - near));
+	tempMat(2, 2) = (float)(-2 / (far - near));
+	tempMat(2, 3) = (float)-((far + near) / (far - near));
 
 	zNear = (float)near;
 	zFar = (float)far;
 
-	activeMatrix[currentMatrix] *= temp;
+	activeMatrix[currentMatrix] *= tempMat;
 }
 
 void Window::cs455_glFrustum(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
 {
 	glFrustum(left, right, bottom, top, zNear, zFar);
 
-	temp = Matrix455::Zero();
-	temp(0, 0) = (float)((2 * zNear) / (right - left));
-	temp(0, 2) = (float)((right + left) / (right - left));
+	tempMat = Matrix455::Zero();
+	tempMat(0, 0) = (float)((2 * zNear) / (right - left));
+	tempMat(0, 2) = (float)((right + left) / (right - left));
 
-	temp(1, 1) = (float)((2 * zNear) / (top - bottom));
-	temp(1, 2) = (float)((top + bottom) / (top - bottom));
+	tempMat(1, 1) = (float)((2 * zNear) / (top - bottom));
+	tempMat(1, 2) = (float)((top + bottom) / (top - bottom));
 
-	temp(2, 2) = (float)(-(zFar + zNear) / (zFar - zNear));
-	temp(2, 3) = (float)(-(2 * zFar * zNear) / (zFar - zNear));
+	tempMat(2, 2) = (float)(-(zFar + zNear) / (zFar - zNear));
+	tempMat(2, 3) = (float)(-(2 * zFar * zNear) / (zFar - zNear));
 
-	temp(3, 2) = -1.0f;
+	tempMat(3, 2) = -1.0f;
 
-	activeMatrix[currentMatrix] *= temp;
+	activeMatrix[currentMatrix] *= tempMat;
 }
 
 void Window::cs455_gluLookAt(GLdouble ex, GLdouble ey, GLdouble ez, GLdouble cx, GLdouble cy, GLdouble cz, GLdouble ux, GLdouble uy, GLdouble uz)
@@ -1149,28 +1173,28 @@ void Window::cs455_gluLookAt(GLdouble ex, GLdouble ey, GLdouble ez, GLdouble cx,
 	u = s.cross(f);
 	u.normalize();
 
-	temp = Matrix455::Identity();
+	tempMat = Matrix455::Identity();
 
-	temp(0, 0) = s.x();
-	temp(0, 1) = s.y();
-	temp(0, 2) = s.z();
+	tempMat(0, 0) = s.x();
+	tempMat(0, 1) = s.y();
+	tempMat(0, 2) = s.z();
 
-	temp(1, 0) = u.x();
-	temp(1, 1) = u.y();
-	temp(1, 2) = u.z();
+	tempMat(1, 0) = u.x();
+	tempMat(1, 1) = u.y();
+	tempMat(1, 2) = u.z();
 
-	temp(2, 0) = -f.x();
-	temp(2, 1) = -f.y();
-	temp(2, 2) = -f.z();
+	tempMat(2, 0) = -f.x();
+	tempMat(2, 1) = -f.y();
+	tempMat(2, 2) = -f.z();
 
-	activeMatrix[currentMatrix] *= temp;
+	activeMatrix[currentMatrix] *= tempMat;
 	
-	temp = Matrix455::Identity();
-	temp(0, 3) = -(float)(ex);
-	temp(1, 3) = -(float)(ey);
-	temp(2, 3) = -(float)(ez);
+	tempMat = Matrix455::Identity();
+	tempMat(0, 3) = -(float)(ex);
+	tempMat(1, 3) = -(float)(ey);
+	tempMat(2, 3) = -(float)(ez);
 	
-	activeMatrix[currentMatrix] *= temp;
+	activeMatrix[currentMatrix] *= tempMat;
 }
 
 void Window::cs455_gluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar)
@@ -1180,17 +1204,17 @@ void Window::cs455_gluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear
 	fovy *= (M_PI / 180.0);
 	double f = 1.0 / tan(fovy / 2.0);
 
-	temp = Matrix455::Zero();
-	temp(0, 0) = (float)(f / aspect);
+	tempMat = Matrix455::Zero();
+	tempMat(0, 0) = (float)(f / aspect);
 
-	temp(1, 1) = (float)(f);
+	tempMat(1, 1) = (float)(f);
 
-	temp(2, 2) = (float)((zFar + zNear) / (zNear - zFar));
-	temp(2, 3) = (float)((2 * zFar * zNear) / (zNear - zFar));
+	tempMat(2, 2) = (float)((zFar + zNear) / (zNear - zFar));
+	tempMat(2, 3) = (float)((2 * zFar * zNear) / (zNear - zFar));
 
-	temp(3, 2) = -1.0f;
+	tempMat(3, 2) = -1.0f;
 
-	activeMatrix[currentMatrix] *= temp;
+	activeMatrix[currentMatrix] *= tempMat;
 }
 
 #pragma endregion

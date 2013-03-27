@@ -74,13 +74,15 @@ private:
 	Matrix455						activeMatrix[MATRIX_MODE_COUNT];	// The active matrix for each stack...
 	int								currentMatrix;						// The current matrix mode, indexes into matrixStacks and activeMatrix
 
-	Matrix455						composedMatrix;		// The current matrix composed of Projection*Modelview to be used in rendering.
+	Matrix455						composedMatrix;			// The current matrix composed of Projection*Modelview to be used in rendering.
+	Matrix455						modelInverseTranspose;	// The Inverse Transpose of the Modelview matrix, used to transform normals.
 
 	double							vpXMin, vpYMin;	// Viewport edges
 	double							vpWidth, vpHeight;	
 	float							zNear, zFar;	// Z Depth
 		
-	Vector455						transformedPt;		// Temp variable that holds a transformed point
+	Vector455						transformedPt;		// Temp variable that holds a transformed point and related information
+	Vector455						transformedNormal;	
 
 	long							glCapEnabled;		// Variable that holds all the enabled/disabled cap. data.
 
@@ -91,7 +93,9 @@ private:
 
 	Vector3f						f, up, s, u;		// Vectors used for gluLookAt
 
-	Matrix455						temp;
+	Matrix455						tempMat;
+	Vector455						tempVec;
+	PointColor						tempPC;
 
 public:
 	/**
@@ -114,6 +118,8 @@ public:
 	int SceneToRender(void){return sceneToRender;}
 
 private:
+	void reset(void);
+
 	void redraw(void);
 	void waterMarkMine(void);
 	void checkRenderingMode(void);
