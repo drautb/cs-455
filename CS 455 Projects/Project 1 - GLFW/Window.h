@@ -72,6 +72,7 @@ private:
 	Vector455						clearColor;			// Color to put in when the screen is cleared.
 	Vector455						currentColor;		// The current color, changed by calling glColor3f
 	Vector455						currentNormal;		// The current normal, changed by calling glNormal3f
+	Vector455						currentSpecular;	// THe current specular shine color of an object (glMarterialfv)
 	GLenum							renderMode;			// The rendering mode used when glBegin was called
 	GLfloat							lineWidth;			// The line width used when rending lines
 
@@ -101,6 +102,9 @@ private:
 
 	Light							lights[LIGHT_COUNT];	// Array of lights
 	Vector455						netLight;				// The overall effect of all active lights
+	Vector455						specColor;
+
+	float							specularShininess;
 
 	Matrix455						tempMat;
 	Vector455						tempVec;
@@ -151,6 +155,7 @@ private:
 	void loadDataIntoMatrix(Matrix455 *mat, const GLdouble *data);
 	void transformPoint(double x, double y, double z=1.0f, double w=1.0f);
 	void calculateNetLight(Vector455 &ptPos, Vector455 &ptNormal);
+	void calculateSpecular(Vector455 &ptPos, Vector455 &ptNormal);
 
 public:
 	/**

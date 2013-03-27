@@ -94,6 +94,8 @@ void Window::reset(void)
 	currentNormal.z() = 1.0f;
 	currentNormal.w() = 0.0f;
 
+	currentSpecular = Vector455::Zero();
+
 	lineWidth = 1.0f;			// Default line width = 1 px
 
 	clearOutline();
@@ -118,6 +120,9 @@ void Window::reset(void)
 	for (int l=0; l<LIGHT_COUNT; l++)
 		lights[l].reset();
 	lights[0].diffuse << 1.0f, 1.0f, 1.0f, 1.0f;
+	specColor = Vector455::Zero();
+
+	specularShininess = 0;
 
 	transformedPt = Vector455::Zero();
 	transformedNormal = Vector455::Zero();
@@ -739,15 +744,16 @@ void Window::transformPoint(double x, double y, double z, double w)
 	if (cs455_glIsEnabled(GL_LIGHTING))
 	{
 		calculateNetLight(transformedPt, transformedNormal);
+		calculateSpecular(transformedPt, transformedNormal);
 		if (cs455_glIsEnabled(GL_COLOR_MATERIAL))
 		{
-			transformedColor = netLight.cwiseProduct(currentColor);
+			transformedColor = netLight.cwiseProduct(currentColor) + specColor;
 		}
 		else
 		{
 			tempVec << 0.8f, 0.8f, 0.8f, 1.0f;
 			currentColor << 0.2f, 0.2f, 0.2f, 0.0f;
-			transformedColor = netLight.cwiseProduct(tempVec) + currentColor;
+			transformedColor = netLight.cwiseProduct(tempVec) + currentColor + specColor;
 		}
 	}
 	else
@@ -789,6 +795,37 @@ void Window::calculateNetLight(Vector455 &ptPos, Vector455 &ptNormal)
 
 	tempVec << 0.2f, 0.2f, 0.2f, 0.0f;
 	netLight += tempVec;
+}
+
+void Window::calculateSpecular(Vector455 &ptPos, Vector455 &ptNormal)
+{
+	specColor = Vector455::Zero();
+	int glLightEnum = 0;
+	Vector455 normalizedPosDiff = Vector455::Zero();
+	Vector455 halfway = Vector455::Zero();
+
+	for (int l=0; l<LIGHT_COUNT; l++)
+	{
+		glLightEnum = 0x4000 + l;
+		if (cs455_glIsEnabled(glLightEnum))
+		{
+			normalizedPosDiff = lights[l].position - ptPos;
+			normalizedPosDiff.normalize();
+
+			if (ptNormal.dot(normalizedPosDiff) > 0)
+			{
+				tempVec << 0.0f, 0.0f, 1.0f, 0.0f;
+				halfway = normalizedPosDiff + tempVec;
+				halfway.normalize();
+
+				float dotProduct = ptNormal.dot(halfway);
+				dotProduct = pow(dotProduct, specularShininess);
+
+				specColor += max(0.0f, dotProduct) * 
+							 currentSpecular.cwiseProduct(lights[l].specular);
+			}
+		}
+	}
 }
 
 #pragma region OPENGL WRAPPERS
@@ -984,14 +1021,14 @@ void Window::cs455_glMaterialf(GLenum face, GLenum pname, GLfloat param)
 {
 	glMaterialf(face, pname, param);
 
-
+	specularShininess = (float)param;
 }
 
 void Window::cs455_glMaterialfv(GLenum face, GLenum pname, const GLfloat *params)
 {
 	glMaterialfv(face, pname, params);
 
-
+	currentSpecular = params;
 }
 
 void Window::cs455_glNormal3f(GLfloat x, GLfloat y, GLfloat z)
