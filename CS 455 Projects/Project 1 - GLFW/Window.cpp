@@ -131,6 +131,13 @@ void Window::reset(void)
 	tempMat = Matrix455::Zero();
 
 	glCaps.clear();
+
+	fogParams.clear();
+	fogParams[GL_FOG_START] = 0.0f;
+	fogParams[GL_FOG_END] = 1.0f;
+	fogParams[GL_FOG_DENSITY] = 1.0f;
+
+	fogColor = Vector455::Zero();
 }
 
 void Window::redraw(void)
@@ -763,13 +770,20 @@ void Window::transformPoint(double x, double y, double z, double w)
 		transformedColor = currentColor;
 	}
 
-	// 3) Apply projection transformations
+	// 3) Apply fog transformations to colors
+	if (cs455_glIsEnabled(GL_FOG))
+	{
+		calculateFogGValue(transformedPt, transformedColor);
+		transformedColor = fogGValue * transformedColor + (1 - fogGValue) * fogColor;
+	}
+
+	// 4) Apply projection transformations
 	transformedPt = activeMatrix[CS455_GL_PROJECTION] * transformedPt;
 
-	// 4) Divide by w
+	// 5) Divide by w
 	transformedPt /= transformedPt.w();
 
-	// 5) Size to viewport
+	// 6) Size to viewport
 	transformedPt.x() = (float)((transformedPt.x() + 1) * vpWidth / 2 + vpXMin);
 	transformedPt.y() = (float)((transformedPt.y() + 1) * vpHeight / 2 + vpYMin);
 
@@ -827,6 +841,22 @@ void Window::calculateSpecular(Vector455 &ptPos, Vector455 &ptNormal)
 							 currentSpecular.cwiseProduct(lights[l].specular);
 			}
 		}
+	}
+}
+
+void Window::calculateFogGValue(Vector455 &ptPos, Vector455 &ptColor)
+{
+	if (fogParams[GL_FOG_MODE] == GL_LINEAR)
+	{
+		fogGValue = (fogParams[GL_FOG_END] - abs(ptPos.z())) / (fogParams[GL_FOG_END] - fogParams[GL_FOG_START]);
+	}
+	else if (fogParams[GL_FOG_MODE] == GL_EXP)
+	{
+		fogGValue = exp(-(fogParams[GL_FOG_DENSITY] * abs(ptPos.z())));
+	}
+	else if (fogParams[GL_FOG_MODE] == GL_EXP2)
+	{
+		fogGValue = exp(-(fogParams[GL_FOG_DENSITY] * pow(ptPos.z(), 2)));
 	}
 }
 
@@ -988,14 +1018,14 @@ void Window::cs455_glFogf(GLenum pname, GLfloat param)
 {
 	glFogf(pname, param);
 
-
+	fogParams[pname] = param;
 }
 
 void Window::cs455_glFogfv(GLenum pname, const GLfloat *params)
 {
 	glFogfv(pname, params);
 
-
+	fogColor = params;
 }
 
 void Window::cs455_glLightfv(GLenum light, GLenum pname, const GLfloat *params)

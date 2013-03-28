@@ -106,6 +106,10 @@ private:
 
 	float							specularShininess;
 
+	std::map<GLenum, GLfloat>		fogParams;
+	Vector455						fogColor;
+	float							fogGValue;
+
 	Matrix455						tempMat;
 	Vector455						tempVec;
 	PointColor						tempPC;
@@ -156,6 +160,7 @@ private:
 	void transformPoint(double x, double y, double z=1.0f, double w=1.0f);
 	void calculateNetLight(Vector455 &ptPos, Vector455 &ptNormal);
 	void calculateSpecular(Vector455 &ptPos, Vector455 &ptNormal);
+	void calculateFogGValue(Vector455 &ptPos, Vector455 &ptColor);
 
 public:
 	/**
