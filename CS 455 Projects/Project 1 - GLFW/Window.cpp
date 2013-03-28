@@ -32,7 +32,7 @@ Window::Window(void)
 
 	reset();
 
-	sceneToRender = 2;
+	sceneToRender = 7;
 }
 
 Window::~Window(void)
@@ -241,6 +241,12 @@ void Window::renderPoint()
 				pc0 = pointQ.PopFront();
 				pc1 = pointQ.PopFront();
 				pc2 = pointQ.PopFront();
+
+				if (cs455_glIsEnabled(GL_CULL_FACE))
+				{
+					if (!isFrontFace(pc0, pc1, pc2))
+						break;
+				}
 
 				setZPlane(pc0, pc1, pc2);
 
@@ -679,7 +685,7 @@ void Window::saveToOutline(int x, int y, float z, double r, double g, double b)
 		tempPC.x = x;
 		tempPC.y = y;
 		tempPC.z = z;
-		tempPC.color << r, g, b, 0.0f;
+		tempPC.color << (float)r, (float)g, (float)b, 0.0f;
 
 		saveToOutline(tempPC);
 	}
@@ -858,6 +864,19 @@ void Window::calculateFogGValue(Vector455 &ptPos, Vector455 &ptColor)
 	{
 		fogGValue = exp(-(fogParams[GL_FOG_DENSITY] * pow(ptPos.z(), 2)));
 	}
+}
+
+bool Window::isFrontFace(PointColor &pc0, PointColor &pc1, PointColor &pc2)
+{
+	tempMat.col(0) << (float)pc0.x, (float)pc1.x, (float)pc2.x, 1.0f;
+	tempMat.col(1) << (float)pc0.y, (float)pc1.y, (float)pc2.y, 1.0f;
+	tempMat.col(2) << (float)pc0.z, (float)pc1.z, (float)pc2.z, 1.0f;
+	tempMat.col(3) << (float)(activeMatrix[CS455_GL_MODELVIEW].col(1)(3)), 
+					  (float)(activeMatrix[CS455_GL_MODELVIEW].col(2)(3)), 
+					  (float)(activeMatrix[CS455_GL_MODELVIEW].col(3)(3)), 
+					  1.0f;
+
+	return tempMat.determinant() > 0;
 }
 
 #pragma region OPENGL WRAPPERS

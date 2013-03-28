@@ -162,6 +162,8 @@ private:
 	void calculateSpecular(Vector455 &ptPos, Vector455 &ptNormal);
 	void calculateFogGValue(Vector455 &ptPos, Vector455 &ptColor);
 
+	bool isFrontFace(PointColor &pc0, PointColor &pc1, PointColor &pc2);
+
 public:
 	/**
 	 * My OpenGL wrappers

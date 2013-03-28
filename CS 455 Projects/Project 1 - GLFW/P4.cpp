@@ -21,6 +21,8 @@ void P4::redraw(Window *w)
 		renderExpFog(w);
 	else if (sceneToRender == 6)
 		renderExpSqFog(w);
+	else if (sceneToRender == 7)
+		renderBasicCulling(w);
 }
 
 void P4::renderFrustum(Window *w)
@@ -319,4 +321,27 @@ void P4::renderExpSqFog(Window *w)
 	w->cs455_glEnd();
 
 	w->cs455_glDisable(GL_FOG);
+}
+
+void P4::renderBasicCulling(Window *w)
+{
+	w->cs455_glEnable(GL_CULL_FACE);
+
+	w->cs455_glMatrixMode(GL_PROJECTION);
+	w->cs455_glLoadIdentity();
+	w->cs455_glMatrixMode(GL_MODELVIEW);
+	w->cs455_glLoadIdentity();
+
+	w->cs455_glBegin(GL_TRIANGLES);
+		w->cs455_glColor3f(0.5f,0.2f,1.0f);
+		w->cs455_glVertex3f(0.5f,0.1f,0.0f);
+		w->cs455_glVertex3f(0.8f,0.1f,0.0f);
+		w->cs455_glVertex3f(0.65f,0.4f,0.0f);
+		w->cs455_glColor3f(0.5f,0.8f,0.2f);
+		w->cs455_glVertex3f(-0.5f,0.1f,0.0f);
+		w->cs455_glVertex3f(-0.8f,0.1f,0.0f);
+		w->cs455_glVertex3f(-0.65f,0.4f,0.0f);
+	w->cs455_glEnd();
+
+	w->cs455_glDisable(GL_CULL_FACE);
 }

@@ -5,7 +5,7 @@
 class P4
 {
 public:
-	static const int SCENE_COUNT = 7;
+	static const int SCENE_COUNT = 8;
 
 	static void redraw(Window *w);
 	static void renderFrustum(Window *w);
@@ -15,5 +15,6 @@ public:
 	static void renderLinearFog(Window *w);
 	static void renderExpFog(Window *w);
 	static void renderExpSqFog(Window *w);
+	static void renderBasicCulling(Window *w);
 };
 
