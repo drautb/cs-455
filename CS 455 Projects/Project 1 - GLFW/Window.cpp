@@ -32,7 +32,7 @@ Window::Window(void)
 
 	reset();
 
-	sceneToRender = 7;
+	sceneToRender = 0;
 }
 
 Window::~Window(void)
@@ -146,8 +146,8 @@ void Window::redraw(void)
 	cs455_glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	//P2::redraw(this);
-	//P3::redraw(this);
-	P4::redraw(this);
+	P3::redraw(this);
+	//P4::redraw(this);
 
 	if (drawMode == MODE_CS_455)
 		glDrawPixels(WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGB, GL_FLOAT, raster);
